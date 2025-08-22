@@ -469,7 +469,7 @@
   async function openByDayId(dayUID) {
     if (!dayUID) return;
     try {
-      const url = `${ENDPOINTS.editRead}?day_uid=${encodeURIComponent(dayUID)}`;
+      const url = `${ENDPOINTS.editRead}?from_day_uid=${encodeURIComponent(dayUID)}`;
       const { job, days } = await fetchJSON(url);
       const daysNorm = (Array.isArray(days) ? days : []).map(normalizeDay);
       const title = job?.customer_name || job?.Customer || job?.title || job?.Subject || "";
