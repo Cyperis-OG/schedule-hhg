@@ -14,7 +14,9 @@ $fromDayUid   = isset($_GET['from_day_uid']) ? intval($_GET['from_day_uid']) : n
 try {
   if (!$jobId && $fromDayUid) {
     // resolve master job id from a job day uid
-    $sql = "SELECT job_id FROM job_days WHERE id = ?";
+    // job_days uses `uid` for the public identifier exposed to the client,
+    // so look up the master job by that column.
+    $sql = "SELECT job_id FROM job_days WHERE uid = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$fromDayUid]);
     $jobId = (int)$stmt->fetchColumn();
