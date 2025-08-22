@@ -8,8 +8,10 @@ ini_set('display_errors', '0');
 require_once '/home/freeman/job_scheduler.php';  // <— absolute path
 
 
-$jobId        = isset($_GET['job']) ? intval($_GET['job']) : null;
-$fromDayUid   = isset($_GET['from_day_uid']) ? intval($_GET['from_day_uid']) : null;
+$jobId      = isset($_GET['job']) ? intval($_GET['job']) : null;
+$fromDayUid = isset($_GET['from_day_uid'])
+  ? preg_replace('/[^a-fA-F0-9]/', '', $_GET['from_day_uid'])
+  : null;
 
 try {
   if (!$jobId && $fromDayUid) {
