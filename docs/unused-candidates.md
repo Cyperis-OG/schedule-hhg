@@ -1,0 +1,16 @@
+admin/add_job.php
+admin/contractors.php
+map.php
+scripts/send_tomorrow_schedule.php
+assets/data.js
+assets/state.js
+assets/js/data.js
+assets/dnd.js
+assets/main.js
+assets/scheduler.js
+assets/quickadd.js
+assets/app.js
+assets/utils.js
+assets/quickinfo.js
+api/accept_invite.php
+api/create_invite.php
