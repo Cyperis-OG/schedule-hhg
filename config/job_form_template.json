@@ -1,0 +1,107 @@
+{
+  "//": "Master template for BOTH the Full Add-Job page and the Quick-Add modal.",
+  "maxDays": 5,
+
+  "sections": [
+    {
+      "id": "job_core",
+      "label": "Job Details",
+      "level": "job",
+      "fields": [
+        {
+          "key": "customer_name",
+          "label": "Customer",
+          "type": "customer",
+          "required": true,
+          "quick": true,
+          "help": "Customer acts as the calendar title (no separate Title field)."
+        },
+        {
+          "key": "job_number",
+          "label": "Job Number",
+          "type": "text",
+          "required": false,
+          "quick": false
+        },
+        {
+          "key": "salesman",
+          "label": "Salesman / Primary Contact",
+          "type": "text",
+          "required": false,
+          "quick": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            ["scheduled", "Scheduled"],
+            ["pending",   "Pending"],
+            ["complete",  "Complete"],
+            ["canceled",  "Canceled"]
+          ],
+          "default": "scheduled",
+          "quick": true
+        },
+        {
+          "key": "notes",
+          "label": "Job Notes",
+          "type": "textarea",
+          "required": false,
+          "quick": false
+        }
+      ]
+    },
+
+    {
+      "id": "job_meta",
+      "label": "Extra (Job Level)",
+      "level": "job_meta",
+      "fields": [
+        { "key": "project_manager", "label": "Project Manager", "type": "text", "quick": true },
+        { "key": "electrician",     "label": "Electrician",     "type": "text", "quick": true }
+      ]
+    },
+
+    {
+      "id": "day_core",
+      "label": "Per-Day Details",
+      "level": "day",
+      "cloneable": true,
+      "fields": [
+        { "key": "work_date",     "label": "Date",        "type": "date", "required": true, "quick": true },
+        { "key": "start_time",    "label": "Start",       "type": "time", "required": true, "default": "08:00", "quick": true },
+        { "key": "end_time",      "label": "End",         "type": "time", "required": true, "default": "12:00", "quick": true },
+        { "key": "location",      "label": "Location",    "type": "text", "required": false, "quick": true },
+        { "key": "contractor_id", "label": "Contractor",  "type": "contractor", "required": false, "quick": true },
+
+        { "key": "tractors",      "label": "TTrailers",   "type": "number", "default": 0, "quick": true },
+        { "key": "bobtails",      "label": "Bobtails",    "type": "number", "default": 0, "quick": true },
+
+        { "key": "movers",        "label": "Movers",      "type": "number", "default": 0, "quick": true },
+        { "key": "drivers",       "label": "Drivers",     "type": "number", "default": 0, "quick": true },
+        { "key": "installers",    "label": "Installers",  "type": "number", "default": 0, "quick": true },
+        { "key": "supervisors",   "label": "Supervisors", "type": "number", "default": 0, "quick": true },
+        { "key": "pctechs",       "label": "PC Techs",    "type": "number", "default": 0, "quick": true },
+
+        { "key": "day_notes",     "label": "Day Notes",   "type": "textarea", "quick": true }
+      ]
+    },
+
+    {
+      "id": "day_meta",
+      "label": "Extra (Per-Day)",
+      "level": "day_meta",
+      "cloneable": true,
+      "fields": [
+        {
+          "key": "title_suffix",
+          "label": "Calendar Suffix",
+          "type": "text",
+          "help": "Optional: appended to title for this day only, e.g., (Day 2).",
+          "quick": false
+        }
+      ]
+    }
+  ]
+}

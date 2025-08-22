@@ -1,0 +1,58 @@
+{
+  "title": "{{jobs.title}}",
+  "sections": [
+    {
+      "label": "Time",
+      "rows": [
+        ["{{job_days.start_time}} - {{job_days.end_time}}", ""]
+      ]
+    },
+    {
+      "label": "Location",
+      "rows": [
+        ["{{job_days.location||jobs.meta.location||''}}", ""]
+      ]
+    },
+    {
+      "label": "Contractor",
+      "rows": [
+        ["{{contractors.name}}", ""]
+      ]
+    },
+    {
+      "label": "Vehicles",
+      "rows": [
+        ["TTrailers", "{{job_days.tractors}}"],
+        ["Bobtails", "{{job_days.bobtails}}"]
+      ]
+    },
+    {
+      "label": "Labor",
+      "rows": [
+        ["Supervisors", "{{job_days.supervisors}}"],
+        ["Drivers",     "{{job_days.drivers}}"],
+        ["Movers",      "{{job_days.movers}}"],
+        ["Installers",  "{{job_days.installers}}"],
+        ["PC Techs",    "{{job_days.pctechs}}"]
+      ]
+    },
+    {
+      "label": "Status",
+      "rows": [
+        ["{{job_days.status}}", ""]
+      ]
+    },
+    {
+      "label": "Notes",
+      "rows": [
+        ["{{jobs.notes}}", ""]
+      ]
+    }
+  ],
+  "actions": [
+    {"id":"copy","label":"Copy Job","kind":"primary"},
+    {"id":"edit","label":"Edit/View Details","kind":"info"},
+    {"id":"delete","label":"Delete","kind":"danger"},
+    {"id":"cancel","label":"Cancel","kind":"secondary"}
+  ]
+}

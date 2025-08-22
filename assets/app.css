@@ -1,0 +1,121 @@
+html, body { height:100%; margin:0; }
+
+.topbar {
+  height: 40px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font: 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:#fff;
+}
+.topbar .brand { font-weight:700; }
+
+.dnd-toggle { display:flex; align-items:center; gap:8px; user-select:none; }
+.dnd-toggle input { transform: translateY(1px); }
+
+#Schedule { height: calc(100% - 40px); }
+
+/* Appointment template */
+.appt { padding:6px 8px; line-height:1.2; }
+.appt-top { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.appt-bot { font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* Let our template control boldness */
+.e-schedule .e-appointment .e-subject { font-weight:inherit; }
+
+/* Dialog niceties */
+.qi-dialog.e-dialog .e-dlg-header-content { border-bottom:1px solid #eee; }
+.qi-dialog .qi { padding: 14px 16px; }
+
+.qa-dialog .e-dlg-content { padding: 0; }
+.qa { padding: 18px; font: inherit; }
+.qa-grid { display:grid; grid-template-columns:1fr 1fr; column-gap:18px; row-gap:14px; }
+.qa-row { display:grid; gap:8px; }
+.qa-row label { font-size:12px; color:#64748b; }
+.qa input, .qa select, .qa textarea {
+  width:100%; background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+  padding:10px 12px; font:inherit; box-sizing:border-box;
+}
+.qa textarea { min-height:70px; resize:vertical; }
+.status-row { grid-column:1 / -1; }
+.days-wrap { display:grid; gap:16px; grid-column:1 / -1; }
+.day-card { border:1px solid #e5e7eb; border-radius:14px; background:#fff; padding:14px; }
+.day-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.day-head .left { display:flex; align-items:center; gap:8px; }
+.day-head .tag { font-weight:700; }
+.day-head .actions { display:flex; gap:8px; }
+.btn { border-radius:8px; padding:8px 12px; border:1px solid #e5e7eb; background:#fff; cursor:pointer }
+.btn.sm { padding:6px 10px; font-size:13px; border-radius:6px; }
+.btn.ghost { background:transparent; }
+.btn.danger { border-color:#ef4444; color:#ef4444; }
+.caret-btn { width:30px; text-align:center; }
+.day-body { display:block; }
+.day-card.collapsed .day-body { display:none; }
+.day-grid { display:grid; grid-template-columns:2fr 2fr; column-gap:16px; row-gap:10px; }
+.time-col { display:grid; gap:12px; }
+.time-triple { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; align-items:center; }
+.time-triple input[type="number"] { text-align:center; }
+.counts { display:grid; gap:12px; grid-template-columns:repeat(9, minmax(0, 1fr)); margin-top:10px; }
+.day-notes { margin-top:12px; }
+.files-row { margin-top:12px; display:grid; gap:10px; grid-template-columns:1fr 1fr; }
+.file-hint { font-size:12px; color:#6b7280; }
+
+@media (max-width:1080px){
+  .qa-grid { grid-template-columns:1fr; }
+  .day-grid { grid-template-columns:1fr; }
+  .counts  { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+  .files-row { grid-template-columns:1fr; }
+}
+
+/* put in app.css */
+#Schedule.dnd-off .e-appointment { cursor: not-allowed; }
+
+/* ---------- Quick Info (old look, centered, with shadow) ---------- */
+.qi-dialog .e-dlg-content { padding: 0; }
+
+.qi-card {
+  min-width: 460px;
+  max-width: 680px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 16px 10px 16px;
+}
+
+.qi-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 6px 6px 12px 6px;
+}
+
+.qi-sheet { display: grid; gap: 0; }
+
+.qi-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  align-items: start;
+  padding: 10px 12px;
+  border-top: 1px solid #eef0f3;
+}
+.qi-row:first-child { border-top: 0; }
+
+.qi-label {
+  color: #64748b;
+  font-weight: 600;
+}
+.qi-value { white-space: pre-line; }
+
+.qi-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 12px 12px 8px 12px;
+}
+
+.qi-btn {
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+}
+.qi-btn.primary { background: #0ea5e9; border-color: #0ea5e9; color: #fff; }
+.qi-btn.danger  { border-color: #ef4444; color: #ef4444; }

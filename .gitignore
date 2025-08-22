@@ -1,0 +1,32 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Logs/cache
+*.log
+cache/
+tmp/
+
+# PHP/Composer (if used)
+vendor/
+composer.lock
+
+# Node (if ever used)
+node_modules/
+dist/
+
+# Large or uploaded files (adjust as needed)
+uploads/
+*.pdf
+*.zip
+*.tar
+*.tar.gz
+*.xlsx
+*.csv
+
+# ✅ If this contains your Syncfusion license, keep it out of Git
+includes/syncfusion_cdn.php
