@@ -19,9 +19,13 @@ try {
     // job_days uses `uid` for the public identifier exposed to the client,
     // so look up the master job by that column.
     $sql = "SELECT job_id FROM job_days WHERE uid = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$fromDayUid]);
-    $jobId = (int)$stmt->fetchColumn();
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param('s', $fromDayUid);
+    $stmt->execute();
+    $stmt->bind_result($jobId);
+    $stmt->fetch();
+    $stmt->close();
+    $jobId = (int)$jobId;
   }
 
   if (!$jobId) {
@@ -29,17 +33,20 @@ try {
   }
 
   // master job
-  $stmt = $pdo->prepare("
+  $stmt = $mysqli->prepare("
     SELECT id AS JobId, customer_name, job_number, salesman, status
     FROM jobs
     WHERE id = ?
   ");
-  $stmt->execute([$jobId]);
-  $job = $stmt->fetch(PDO::FETCH_ASSOC);
+  $stmt->bind_param('i', $jobId);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  $job = $res->fetch_assoc();
+  $stmt->close();
   if (!$job) { echo json_encode(['ok'=>false,'error'=>'Job not found']); exit; }
 
   // all days for that job (add/rename columns to match your schema)
-  $stmt = $pdo->prepare("
+  $stmt = $mysqli->prepare("
     SELECT
       jd.id           AS Id,
       jd.job_id       AS JobId,
@@ -57,8 +64,12 @@ try {
     WHERE jd.job_id = ?
     ORDER BY jd.work_date, jd.start_time
   ");
-  $stmt->execute([$jobId]);
-  $days = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $stmt->bind_param('i', $jobId);
+  $stmt->execute();
+  $res = $stmt->get_result();
+  $days = [];
+  while ($row = $res->fetch_assoc()) { $days[] = $row; }
+  $stmt->close();
 
   echo json_encode(['ok'=>true, 'job'=>$job, 'days'=>$days]);
 } catch (Throwable $e) {
