@@ -1,0 +1,57 @@
+.
+.gitignore
+.gitkeep
+admin
+  add_job.php
+  contractors.php
+api
+  accept_invite.php
+  contractors_list.php
+  contractors_mutate.php
+  create_invite.php
+  customers_search.php
+  job_full_get.php
+  job_full_save.php
+  job_save.php
+  job_update_timeslot.php
+  jobs_by_date_geo.php
+  jobs_fetch.php
+  popup_render.php
+assets
+  app.css
+  app.js
+  data.js
+  dnd.js
+  js
+    apptemplate.js
+    core.js
+    data.js
+    dnd.js
+    editjob.js
+    persist-moves.js
+    quickadd.js
+    quickinfo.js
+  main.js
+  quickadd.js
+  quickinfo.js
+  scheduler.js
+  state.js
+  utils.js
+config
+  job_form_template.json
+  popup_template.json
+docs
+  deps-js.md
+  deps-php.md
+  entry-points.md
+  inventory.md
+  lint-report.md
+  unused-candidates.md
+index.php
+lib
+  ids.php
+map.php
+scripts
+  audit-unused.sh
+  lint.sh
+  send_tomorrow_schedule.php
