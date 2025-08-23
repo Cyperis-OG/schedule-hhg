@@ -35,7 +35,10 @@ try {
   }
 
   // master job (return both numeric id and uid if present)
-  $stmt = must_prepare($mysqli, 'SELECT id AS JobId, uid AS JobUID, customer_name, job_number, salesman, status FROM jobs WHERE uid = ?');
+  $stmt = must_prepare(
+    $mysqli,
+    'SELECT id AS JobId, uid AS JobUID, title AS customer_name, job_number, salesman, status FROM jobs WHERE uid = ?'
+  );
   $stmt->bind_param('s', $jobUid);
   $stmt->execute();
   $res = $stmt->get_result();
@@ -43,8 +46,10 @@ try {
   $stmt->close();
   if (!$job) { echo json_encode(['ok'=>false,'error'=>'Job not found']); exit; }
 
-  // all days for that job
-  $stmt = must_prepare($mysqli, 'SELECT
+  // all days for that job — join jobs to expose label columns expected by templates
+  $stmt = must_prepare(
+    $mysqli,
+    'SELECT
       jd.uid           AS Id,
       jd.job_uid       AS JobUID,
       jd.work_date     AS WorkDate,
@@ -56,10 +61,15 @@ try {
       jd.installers, jd.pctechs, jd.supervisors,
       jd.project_managers, jd.electricians,
       jd.day_notes     AS DayNotes,
-      jd.status        AS Status
+      jd.status        AS Status,
+      j.title          AS customer,
+      j.job_number     AS job,
+      jd.location      AS task1
     FROM job_days jd
+    JOIN jobs j ON j.uid = jd.job_uid
     WHERE jd.job_uid = ?
-    ORDER BY jd.work_date, jd.start_time');
+    ORDER BY jd.work_date, jd.start_time'
+  );
   $stmt->bind_param('s', $jobUid);
   $stmt->execute();
   $res = $stmt->get_result();
