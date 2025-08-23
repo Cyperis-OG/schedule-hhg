@@ -7,64 +7,60 @@ ini_set('display_errors', '0');
 
 require_once '/home/freeman/job_scheduler.php';  // <— absolute path
 
+// use job UID for lookups; resolve via day UID if needed
+$jobUid     = isset($_GET['job']) ? preg_replace('/[^a-fA-F0-9]/', '', $_GET['job']) : null;
+$fromDayUid = isset($_GET['from_day_uid']) ? preg_replace('/[^a-fA-F0-9]/', '', $_GET['from_day_uid']) : null;
 
-$jobId      = isset($_GET['job']) ? intval($_GET['job']) : null;
-$fromDayUid = isset($_GET['from_day_uid'])
-  ? preg_replace('/[^a-fA-F0-9]/', '', $_GET['from_day_uid'])
-  : null;
+function must_prepare(mysqli $db, string $sql): mysqli_stmt {
+  $stmt = $db->prepare($sql);
+  if (!$stmt) { throw new Exception('Prepare failed: '.$db->error); }
+  return $stmt;
+}
 
 try {
-  if (!$jobId && $fromDayUid) {
-    // resolve master job id from a job day uid
-    // job_days uses `uid` for the public identifier exposed to the client,
-    // so look up the master job by that column.
-    $sql = "SELECT job_id FROM job_days WHERE uid = ?";
-    $stmt = $mysqli->prepare($sql);
+  if (!$jobUid && $fromDayUid) {
+    // resolve master job uid from a day uid
+    $stmt = must_prepare($mysqli, 'SELECT job_uid FROM job_days WHERE uid = ?');
     $stmt->bind_param('s', $fromDayUid);
     $stmt->execute();
-    $stmt->bind_result($jobId);
+    $stmt->bind_result($jobUid);
     $stmt->fetch();
     $stmt->close();
-    $jobId = (int)$jobId;
+    $jobUid = $jobUid ?: null;
   }
 
-  if (!$jobId) {
-    echo json_encode(['ok' => false, 'error' => 'Missing job id']); exit;
+  if (!$jobUid) {
+    echo json_encode(['ok' => false, 'error' => 'Missing job id']);
+    exit;
   }
 
-  // master job
-  $stmt = $mysqli->prepare("
-    SELECT id AS JobId, customer_name, job_number, salesman, status
-    FROM jobs
-    WHERE id = ?
-  ");
-  $stmt->bind_param('i', $jobId);
+  // master job (return both numeric id and uid if present)
+  $stmt = must_prepare($mysqli, 'SELECT id AS JobId, uid AS JobUID, customer_name, job_number, salesman, status FROM jobs WHERE uid = ?');
+  $stmt->bind_param('s', $jobUid);
   $stmt->execute();
   $res = $stmt->get_result();
   $job = $res->fetch_assoc();
   $stmt->close();
   if (!$job) { echo json_encode(['ok'=>false,'error'=>'Job not found']); exit; }
 
-  // all days for that job (add/rename columns to match your schema)
-  $stmt = $mysqli->prepare("
-    SELECT
-      jd.id           AS Id,
-      jd.job_id       AS JobId,
-      jd.work_date    AS WorkDate,
-      jd.start_time   AS StartTime,
-      jd.end_time     AS EndTime,
+  // all days for that job
+  $stmt = must_prepare($mysqli, 'SELECT
+      jd.uid           AS Id,
+      jd.job_uid       AS JobUID,
+      jd.work_date     AS WorkDate,
+      jd.start_time    AS StartTime,
+      jd.end_time      AS EndTime,
       jd.contractor_id AS ContractorId,
-      jd.location     AS Location,
+      jd.location      AS Location,
       jd.tractors, jd.bobtails, jd.movers, jd.drivers,
       jd.installers, jd.pctechs, jd.supervisors,
       jd.project_managers, jd.electricians,
-      jd.day_notes    AS DayNotes,
-      jd.status       AS Status
+      jd.day_notes     AS DayNotes,
+      jd.status        AS Status
     FROM job_days jd
-    WHERE jd.job_id = ?
-    ORDER BY jd.work_date, jd.start_time
-  ");
-  $stmt->bind_param('i', $jobId);
+    WHERE jd.job_uid = ?
+    ORDER BY jd.work_date, jd.start_time');
+  $stmt->bind_param('s', $jobUid);
   $stmt->execute();
   $res = $stmt->get_result();
   $days = [];
