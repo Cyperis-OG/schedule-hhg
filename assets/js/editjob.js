@@ -501,4 +501,18 @@
   }
 
   window.editJob = { openByDayId, openByJobId };
+
+  // Backwards compatibility: legacy callers may still invoke
+  // `open_job_edit_dialog` expecting to pass a scheduler event.
+  // Accept a variety of event shapes and delegate to the new API.
+  window.open_job_edit_dialog = function(ev) {
+    const dayUid = ev?.Id || ev?.day_uid || ev?.uid || ev?.DayUID;
+    if (dayUid) return openByDayId(dayUid);
+
+    const jobId = ev?.JobId || ev?.job_id;
+    if (jobId) return openByJobId(jobId);
+
+    console.error('open_job_edit_dialog: missing event data', ev);
+    alert('Missing job id');
+  };
 })();
