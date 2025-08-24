@@ -79,9 +79,11 @@
       const [eY, eT] = String(d.EndTime || d.StartTime).replace("T"," ").split(" ");
       ymd = dY; s24 = (dT || "00:00:00").slice(0,5); e24 = (eT || "00:00:00").slice(0,5);
     } else {
-      ymd = d.work_date;
-      s24 = (d.start_time || "").slice(0,5);
-      e24 = (d.end_time   || "").slice(0,5);
+      ymd = d.work_date ?? d.WorkDate;
+      const [sh, sm] = String(d.start_time || "").split(":").map(Number);
+      const [eh, em] = String(d.end_time   || "").split(":").map(Number);
+      s24 = `${pad2(sh||0)}:${pad2(sm||0)}`;
+      e24 = `${pad2(eh||0)}:${pad2(em||0)}`;
     }
     return {
       uid: d.Id || d.day_uid || null,
@@ -99,9 +101,10 @@
       project_managers: Number(d.project_managers ?? d.NumProjectManagers ?? 0),
       crew_transport: Number(d.crew_transport ?? d.NumCrewTransport ?? 0),
       electricians: Number(d.electricians ?? d.NumElectricians ?? 0),
-      notes: d.day_notes ?? d.notes ?? "",
+      notes: d.day_notes ?? d.DayNotes ?? d.notes ?? "",
       status: d.Status ?? d.status ?? "scheduled",
-      contractor_id: (d.ContractorId == null ? null : Number(d.ContractorId))
+      contractor_id: (d.contractor_id != null ? Number(d.contractor_id)
+                      : (d.ContractorId != null ? Number(d.ContractorId) : null))
     };
   }
 
