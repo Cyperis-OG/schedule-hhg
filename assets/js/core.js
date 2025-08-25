@@ -1,4 +1,4 @@
-// /schedule-ng/assets/js/core.js
+// /095/schedule-ng/assets/js/core.js
 
 // --- Inject required modules (Timeline, DnD, Resize) ---
 if (window.ej?.schedule?.Schedule?.Inject) {
