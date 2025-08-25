@@ -79,6 +79,24 @@ try {
   while ($row = $res->fetch_assoc()) { $days[] = $row; }
   $stmt->close();
 
+  // collect any previously uploaded files per day
+  foreach ($days as &$d) {
+    $uid = $d['Id'] ?? $d['uid'] ?? null;
+    $d['files'] = ['bol' => [], 'extra' => []];
+    if ($uid) {
+      foreach (['bol', 'extra'] as $bucket) {
+        $dir = __DIR__ . '/../uploads/' . $uid . '/' . $bucket . '/';
+        if (is_dir($dir)) {
+          foreach (scandir($dir) as $fn) {
+            if ($fn === '.' || $fn === '..') continue;
+            $d['files'][$bucket][] = '/schedule-ng/uploads/' . $uid . '/' . $bucket . '/' . $fn;
+          }
+        }
+      }
+    }
+  }
+  unset($d);
+
   echo json_encode(['ok'=>true, 'job'=>$job, 'days'=>$days]);
 } catch (Throwable $e) {
   http_response_code(500);
