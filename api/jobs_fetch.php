@@ -72,7 +72,18 @@ if ($stmt = $mysqli->prepare($sqlE)) {
   $stmt->execute();
   $res = $stmt->get_result();
   while ($row = $res->fetch_assoc()) {
-    $events[] = [
+    $files = ['bol' => [], 'extra' => []];
+    foreach (['bol', 'extra'] as $bucket) {
+      $dir = __DIR__ . '/../uploads/' . $row['id'] . '/' . $bucket . '/';
+      if (is_dir($dir)) {
+        foreach (scandir($dir) as $fn) {
+          if ($fn === '.' || $fn === '..') continue;
+          $files[$bucket][] = 'uploads/' . $row['id'] . '/' . $bucket . '/' . $fn;
+        }
+      }
+    }
+
+    $event = [
       'Id'           => $row['id'],
       'Subject'      => trim($row['title'] . ($row['job_number'] ? " ({$row['job_number']})" : '')),
       'Customer'     => $row['title'],
@@ -83,6 +94,10 @@ if ($stmt = $mysqli->prepare($sqlE)) {
       'Location'     => $row['location'],
       'Status'       => $row['status']
     ];
+    if ($files['bol'] || $files['extra']) {
+      $event['files'] = $files;
+    }
+    $events[] = $event;
   }
   $stmt->close();
 }
