@@ -242,10 +242,10 @@
 
           <div class="files-row">
             <div class="qa-row">
-              <label>BOL / CSO (PDF, multiple)</label>
-              <input name="day.${index}.bol_files" type="file" accept="application/pdf" multiple />
+              <label>BOL / CSO (PDF)</label>
+              <input name="day.${index}.bol_files" type="file" accept="application/pdf" />
               ${initial.bol && initial.bol.length ? `<div class="file-links">${initial.bol.map(u=>`<a href="${esc(u)}" target="_blank">${esc(u.split('/').pop())}</a>`).join('<br>')}</div>` : ''}
-              <div class="file-hint">Attach one or more PDFs (bill of lading, CSO, etc.).</div>
+              <div class="file-hint">Attach a PDF (bill of lading, CSO, etc.). Uploading a new file replaces the existing one.</div>
             </div>
             <div class="qa-row">
               <label>Additional files (any)</label>
