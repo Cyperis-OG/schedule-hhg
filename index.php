@@ -38,7 +38,8 @@ include '/home/freeman/job_scheduler.php';
 
         // NEW:
         editRead:        './api/job_full_get.php',   // returns { ok:true, job:{...}, days:[...] }
-        editSave:        './api/job_full_save.php'   // accepts payload { job, days } for updates
+        editSave:        './api/job_full_save.php',  // accepts payload { job, days } for updates
+        deleteJob:       './api/job_delete.php'      // delete a single day or whole job
       },
       DEFAULT_TZ: 'America/Chicago',
       MAX_DAYS: 5
