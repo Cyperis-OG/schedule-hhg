@@ -20,5 +20,5 @@ $stmt->bind_param('sssds', $token, $email, $role, $contractor_id, $exp);
 $stmt->execute();
 
 // Email the link yourself or echo it:
-$link = "https://www.echo-gen.com/schedule-ng/invite/accept.php?token={$token}";
+$link = "https://www.echo-gen.com/095/schedule-ng/invite/accept.php?token={$token}";
 echo json_encode(['ok'=>true, 'invite_link'=>$link]);
