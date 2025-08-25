@@ -9,7 +9,7 @@ export function getViewYMD() {
 
 export async function loadDay(dateStr) {
   try {
-    const r = await fetch(`/schedule-ng/api/jobs_fetch.php?date=${encodeURIComponent(dateStr)}`);
+    const r = await fetch(`/095/schedule-ng/api/jobs_fetch.php?date=${encodeURIComponent(dateStr)}`);
     const j = await r.json();
 
     const events = (j.events || []).map(ev => ({
