@@ -1,10 +1,10 @@
-// /schedule-ng/assets/js/quickadd.js
+// /095/schedule-ng/assets/js/quickadd.js
 // Quick-Add dialog (centered). Only depends on window.sch and window.loadDay
 
 (function () {
   // ---- Local config & helpers (no external globals required) ----
   const MAX_DAYS = 5;
-  const BASE_PATH = '/schedule-ng';
+  const BASE_PATH = '/095/schedule-ng';
   const API = {
     saveJob: `${BASE_PATH}/api/job_save.php`
   };
