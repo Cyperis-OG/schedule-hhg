@@ -1,5 +1,5 @@
 <?php
-// /schedule-ng/api/job_delete.php
+// /095/schedule-ng/api/job_delete.php
 // Delete a single job day or an entire job (including all its days)
 header('Content-Type: application/json');
 require_once '/home/freeman/job_scheduler.php';
