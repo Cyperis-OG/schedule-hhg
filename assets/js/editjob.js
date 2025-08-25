@@ -104,7 +104,9 @@
       notes: d.day_notes ?? d.DayNotes ?? d.notes ?? "",
       status: d.Status ?? d.status ?? "scheduled",
       contractor_id: (d.contractor_id != null ? Number(d.contractor_id)
-                      : (d.ContractorId != null ? Number(d.ContractorId) : null))
+                      : (d.ContractorId != null ? Number(d.ContractorId) : null)),
+      bol: Array.isArray(d.files?.bol) ? d.files.bol : [],
+      extra: Array.isArray(d.files?.extra) ? d.files.extra : []
     };
   }
 
@@ -242,11 +244,13 @@
             <div class="qa-row">
               <label>BOL / CSO (PDF, multiple)</label>
               <input name="day.${index}.bol_files" type="file" accept="application/pdf" multiple />
+              ${initial.bol && initial.bol.length ? `<div class="file-links">${initial.bol.map(u=>`<a href="${esc(u)}" target="_blank">${esc(u.split('/').pop())}</a>`).join('<br>')}</div>` : ''}
               <div class="file-hint">Attach one or more PDFs (bill of lading, CSO, etc.).</div>
             </div>
             <div class="qa-row">
               <label>Additional files (any)</label>
               <input name="day.${index}.extra_files" type="file" multiple />
+              ${initial.extra && initial.extra.length ? `<div class="file-links">${initial.extra.map(u=>`<a href="${esc(u)}" target="_blank">${esc(u.split('/').pop())}</a>`).join('<br>')}</div>` : ''}
               <div class="file-hint">Attach images, Excel, etc.</div>
             </div>
           </div>
