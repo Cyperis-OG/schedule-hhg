@@ -3,7 +3,8 @@ export const API = {
   fetchDay:        '/schedule-ng/api/jobs_fetch.php',
   popup:           '/schedule-ng/api/popup_render.php',
   persistTimeslot: '/schedule-ng/api/job_update_timeslot.php',
-  saveJob:         '/schedule-ng/api/job_save.php'
+  saveJob:         '/schedule-ng/api/job_save.php',
+  deleteJob:       '/schedule-ng/api/job_delete.php'
 };
 
 export const MAX_DAYS = 5;
