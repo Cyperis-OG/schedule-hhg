@@ -1,10 +1,10 @@
 // Centralized config + shared state
 export const API = {
-  fetchDay:        '/schedule-ng/api/jobs_fetch.php',
-  popup:           '/schedule-ng/api/popup_render.php',
-  persistTimeslot: '/schedule-ng/api/job_update_timeslot.php',
-  saveJob:         '/schedule-ng/api/job_save.php',
-  deleteJob:       '/schedule-ng/api/job_delete.php'
+  fetchDay:        '/095/schedule-ng/api/jobs_fetch.php',
+  popup:           '/095/schedule-ng/api/popup_render.php',
+  persistTimeslot: '/095/schedule-ng/api/job_update_timeslot.php',
+  saveJob:         '/095/schedule-ng/api/job_save.php',
+  deleteJob:       '/095/schedule-ng/api/job_delete.php'
 };
 
 export const MAX_DAYS = 5;
