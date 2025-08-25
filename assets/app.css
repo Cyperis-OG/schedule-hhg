@@ -22,6 +22,8 @@ html, body { height:100%; margin:0; }
 /* Let our template control boldness */
 .e-schedule .e-appointment .e-subject { font-weight:inherit; }
 
+.file-clip{margin-left:4px;cursor:pointer;float:right;}
+
 /* Dialog niceties */
 .qi-dialog.e-dialog .e-dlg-header-content { border-bottom:1px solid #eee; }
 .qi-dialog .qi { padding: 14px 16px; }
