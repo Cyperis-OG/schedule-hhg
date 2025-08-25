@@ -1,4 +1,4 @@
-// /schedule-ng/assets/js/apptemplate.js
+// /095/schedule-ng/assets/js/apptemplate.js
 (function () {
   if (!window.sch) return;
 
