@@ -78,7 +78,7 @@ if ($stmt = $mysqli->prepare($sqlE)) {
       if (is_dir($dir)) {
         foreach (scandir($dir) as $fn) {
           if ($fn === '.' || $fn === '..') continue;
-          $files[$bucket][] = 'uploads/' . $row['id'] . '/' . $bucket . '/' . $fn;
+          $files[$bucket][] = '/095/schedule-ng/uploads/' . $row['id'] . '/' . $bucket . '/' . $fn;
         }
       }
     }
