@@ -1,4 +1,4 @@
-// /schedule-ng/assets/js/dnd.js
+// /095/schedule-ng/assets/js/dnd.js
 // Robust drag/resize ON/OFF toggle for Syncfusion Schedule.
 // Blocks the drag bootstrap at the earliest event so no halo & no crash.
 
