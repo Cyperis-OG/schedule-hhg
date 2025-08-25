@@ -58,7 +58,14 @@ function collect_uploaded($filesRoot, int $dayIdx, string $bucket): array {
     $tmps  = $filesRoot['tmp_name'][$dayIdx][$bucket] ?? null;
     $errs  = $filesRoot['error'][$dayIdx][$bucket] ?? null;
     $sizes = $filesRoot['size'][$dayIdx][$bucket] ?? null;
-    if (!is_array($names)) return $out;
+    if ($names === null) return $out;
+    if (!is_array($names)) {
+        $names = [$names];
+        $types = [$types];
+        $tmps  = [$tmps];
+        $errs  = [$errs];
+        $sizes = [$sizes];
+    }
     $n = count($names);
     for ($i = 0; $i < $n; $i++) {
         if (($errs[$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
@@ -200,19 +207,28 @@ try {
         foreach ($day_uid_by_index as $i => $uid) {
             $saved[$i] = ['bol' => [], 'extra' => []];
 
-            // BOL / CSO -> accept only PDFs
-            foreach (collect_uploaded($filesRoot, $i, 'bol') as $f) {
-                $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
-                if ($ext !== 'pdf') continue;
+            // BOL / CSO -> accept only PDFs. If new BOL uploaded, replace existing.
+            $bolFiles = collect_uploaded($filesRoot, $i, 'bol');
+            if ($bolFiles) {
                 $dir = __DIR__ . '/../uploads/' . $uid . '/bol/';
+                if (is_dir($dir)) {
+                    foreach (scandir($dir) as $fn) {
+                        if ($fn === '.' || $fn === '..') continue;
+                        @unlink($dir . $fn);
+                    }
+                }
                 ensure_dir($dir);
-                $name = safe_filename($f['name']);
-                if (move_uploaded_file($f['tmp'], $dir . $name)) {
-                    $saved[$i]['bol'][] = '/schedule-ng/uploads/' . $uid . '/bol/' . $name;
+                foreach ($bolFiles as $f) {
+                    $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+                    if ($ext !== 'pdf') continue;
+                    $name = safe_filename($f['name']);
+                    if (move_uploaded_file($f['tmp'], $dir . $name)) {
+                        $saved[$i]['bol'][] = '/schedule-ng/uploads/' . $uid . '/bol/' . $name;
+                    }
                 }
             }
 
-            // Additional files (any type)
+            // Additional files (any type, append)
             foreach (collect_uploaded($filesRoot, $i, 'extra') as $f) {
                 $dir = __DIR__ . '/../uploads/' . $uid . '/extra/';
                 ensure_dir($dir);
