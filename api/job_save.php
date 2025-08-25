@@ -204,7 +204,7 @@ try {
           if ($ext !== 'pdf') continue;
           $name = safe_filename($f['name']);
           if (move_uploaded_file($f['tmp'], $dir.$name)) {
-            $saved[$i]['bol'][] = '/schedule-ng/uploads/' . $uid . '/bol/' . $name;
+            $saved[$i]['bol'][] = '/095/schedule-ng/uploads/' . $uid . '/bol/' . $name;
           }
         }
       }
@@ -215,7 +215,7 @@ try {
         ensure_dir($dir);
         $name = safe_filename($f['name']);
         if (move_uploaded_file($f['tmp'], $dir.$name)) {
-          $saved[$i]['extra'][] = '/schedule-ng/uploads/' . $uid . '/extra/' . $name;
+          $saved[$i]['extra'][] = '/095/schedule-ng/uploads/' . $uid . '/extra/' . $name;
         }
       }
     }
