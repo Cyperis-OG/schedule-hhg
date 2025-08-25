@@ -5,6 +5,9 @@
       { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]
     ));
 
+  const CFG = window.SCH_CFG || {};
+  const API = CFG.API || {};
+
   const pad2 = (n) => (n < 10 ? "0" : "") + n;
   const fmtTimeRange = (start, end) => {
     try {
@@ -92,7 +95,7 @@
       </div>
     `;
 
-    // Wire buttons (close + edit)
+    // Wire buttons (close, edit, delete)
     host.querySelector('[data-act="close"]')?.addEventListener('click', () => closeInfo());
     host.querySelector('[data-act="edit"]')?.addEventListener('click', () => {
       // Close first (this was causing your ReferenceError)
@@ -107,8 +110,58 @@
         alert('Edit module is not loaded.');
       }
     });
+    host.querySelector('[data-act="delete"]')?.addEventListener('click', () => handleDelete(ev));
 
     return host;
+  }
+
+  async function handleDelete(ev) {
+    const dayUid = ev.Id || ev.day_uid || ev.DayUID;
+    if (!dayUid || !API.deleteJob || !API.editRead) {
+      alert('Delete API not configured.');
+      return;
+    }
+    try {
+      const r = await fetch(`${API.editRead}?from_day_uid=${encodeURIComponent(dayUid)}`);
+      const j = await r.json();
+      if (!j.ok) {
+        alert(j.error || 'Failed to fetch job details.');
+        return;
+      }
+      const days = j.days || [];
+      const jobUid = j.job?.JobUID || j.job?.uid || j.job_uid;
+      if (!jobUid) {
+        alert('Missing job identifier.');
+        return;
+      }
+      let deleteEntire = false;
+      if (days.length <= 1) {
+        if (!confirm('Delete this job?')) return;
+        deleteEntire = true;
+      } else {
+        const others = days
+          .filter(d => (d.Id || d.uid) !== dayUid)
+          .map(d => d.work_date)
+          .join('\n');
+        deleteEntire = confirm(`This job has other days:\n${others}\n\nOK to delete entire job?`);
+        if (!deleteEntire && !confirm('Delete only this day?')) return;
+      }
+      const payload = deleteEntire ? { job_uid: jobUid } : { job_day_uid: dayUid };
+      await fetch(API.deleteJob, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (deleteEntire) {
+        days.forEach(d => { const id = d.Id || d.uid; if (id) window.sch?.deleteEvent(id); });
+      } else {
+        window.sch?.deleteEvent(dayUid);
+      }
+      closeInfo();
+    } catch (e) {
+      console.error(e);
+      alert('Failed to delete job.');
+    }
   }
 
   function onEventClick(args) {
