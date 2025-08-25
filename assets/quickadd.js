@@ -138,9 +138,9 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
 
         <div class="files-row">
           <div class="qa-row">
-            <label>BOL / CSO (PDF, multiple)</label>
-            <input name="day.${index}.bol_files" type="file" accept="application/pdf" multiple />
-            <div class="file-hint">Attach one or more PDFs (bill of lading, CSO, etc.).</div>
+            <label>BOL / CSO (PDF)</label>
+            <input name="day.${index}.bol_files" type="file" accept="application/pdf" />
+            <div class="file-hint">Attach a PDF (bill of lading, CSO, etc.). Uploading a new file replaces the existing one.</div>
           </div>
           <div class="qa-row">
             <label>Additional files (any)</label>
