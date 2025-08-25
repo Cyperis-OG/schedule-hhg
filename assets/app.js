@@ -60,6 +60,25 @@ function contractorOptionsHtml(){
   return ds.map(c=>`<option value="${String(c.id)}">${c.name}</option>`).join('');
 }
 
+function showAttachments(files){
+  const links=[];
+  (files?.bol||[]).forEach(u=>links.push(`<li><a href="${u}" target="_blank">${u.split('/').pop()}</a></li>`));
+  (files?.extra||[]).forEach(u=>links.push(`<li><a href="${u}" target="_blank">${u.split('/').pop()}</a></li>`));
+  const mount=document.createElement('div');
+  document.body.appendChild(mount);
+  const dlg=new ej.popups.Dialog({
+    header:'Attachments',
+    content:`<ul class="file-list">${links.join('')}</ul>`,
+    showCloseIcon:true,
+    target:document.body,
+    width:'360px',
+    buttons:[{buttonModel:{content:'Close',isPrimary:true},click:()=>dlg.hide()}]
+  });
+  dlg.appendTo(mount);
+  dlg.close=()=>{dlg.destroy(); mount.remove();};
+  dlg.show();
+}
+
 // ----------------------- Quick Add Modal -----------------------
 let quickDlg = null;
 
@@ -197,7 +216,7 @@ function openQuickAddDialog({startTime, endTime, groupIndex}){
             <label>BOL / CSO (PDF)</label>
             <input name="day.${index}.bol_files" type="file" accept="application/pdf" />
             <div class="file-hint">Attach a PDF (bill of lading, CSO, etc.). Uploading a new file replaces the existing one.</div>
-          </div>␊
+          </div>
           <div class="qa-row">
             <label>Additional files (any)</label>
             <input name="day.${index}.extra_files" type="file" multiple />
@@ -484,6 +503,18 @@ sch = new ej.schedule.Schedule({
       infoDlg.overlayClick = () => closeInfoDlg();
 
     }catch(e){ console.error(e); }
+  },
+
+  eventRendered:(args)=>{
+    const f=args.data?.files;
+    if(f && ((f.bol && f.bol.length) || (f.extra && f.extra.length))){
+      const icon=document.createElement('span');
+      icon.className='file-clip';
+      icon.textContent='📎';
+      icon.title='View attachments';
+      icon.addEventListener('click',ev=>{ev.stopPropagation(); showAttachments(f);});
+      args.element.appendChild(icon);
+    }
   },
 
   // Persist drag / resize
