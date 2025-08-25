@@ -1,6 +1,6 @@
 <?php
 /**
- * /home/freeman/public_html/schedule-ng/admin/add_job.php
+ * /home/freeman/public_html/095/schedule-ng/admin/add_job.php
  * ------------------------------------------------------
  * Template-driven "Add Job" page with prefill support for modal launch.
  *
@@ -8,10 +8,10 @@
  *   ?date=YYYY-MM-DD&start=HH:MM&end=HH:MM&contractor_id=123&embed=1
  *
  * Depends on:
- *   /schedule-ng/config/job_form_template.json
- *   /schedule-ng/api/contractors_list.php
- *   /schedule-ng/api/customers_search.php
- *   /schedule-ng/api/job_save.php
+ *   /095/schedule-ng/config/job_form_template.json
+ *   /095/schedule-ng/api/contractors_list.php
+ *   /095/schedule-ng/api/customers_search.php
+ *   /095/schedule-ng/api/job_save.php
  */
 include '/home/freeman/job_scheduler.php';
 
@@ -91,7 +91,7 @@ $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : 
         </div>
       </div>
       <div class="inline">
-        <a class="btn ghost back-btn" href="/schedule-ng/">
+        <a class="btn ghost back-btn" href="/095/schedule-ng/">
           <!-- calendar icon -->
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 2v4M17 2v4M3 10h18M5 6h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           Back to Schedule
@@ -126,9 +126,9 @@ $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : 
     document.getElementById('maxDaysLabel').textContent = TEMPLATE.maxDays || 5;
 
     const API = {
-      contractors: '/schedule-ng/api/contractors_list.php',
-      customers:   '/schedule-ng/api/customers_search.php',
-      save:        '/schedule-ng/api/job_save.php'
+      contractors: '/095/schedule-ng/api/contractors_list.php',
+      customers:   '/095/schedule-ng/api/customers_search.php',
+      save:        '/095/schedule-ng/api/job_save.php'
     };
 
     // ---------------- Parse Prefill from URL ----------------
@@ -430,7 +430,7 @@ $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : 
 
       // Also support standalone use: redirect back to schedule
       const d = payload.days[0].work_date;
-      setTimeout(() => { window.location.href = `/schedule-ng/?date=${encodeURIComponent(d)}`; }, 650);
+      setTimeout(() => { window.location.href = `/095/schedule-ng/?date=${encodeURIComponent(d)}`; }, 650);
     }
 
     // ---------------- Boot ----------------
