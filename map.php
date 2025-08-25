@@ -23,7 +23,7 @@
     function load(){
       group.clearLayers();
       const d = document.getElementById('d').value;
-      fetch(`/schedule-ng/api/jobs_by_date_geo.php?date=${d}`).then(r=>r.json()).then(rows=>{
+      fetch(`/095/schedule-ng/api/jobs_by_date_geo.php?date=${d}`).then(r=>r.json()).then(rows=>{
         const pts=[];
         rows.forEach(r=>{
           if(r.lat && r.lng){
