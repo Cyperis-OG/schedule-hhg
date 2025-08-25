@@ -395,8 +395,15 @@ function openQuickAddDialog({startTime, endTime, groupIndex}){
 
     try{
       const r=await fetch(API.saveJob, { method:'POST', body: fd });
-      const j=await r.json();
-      if(!j.ok) throw new Error(j.error || 'Save failed');
+      const ct=r.headers.get('content-type')||'';
+      let j;
+      if(ct.includes('application/json')){
+        j=await r.json();
+        if(!r.ok || !j.ok) throw new Error(j.error || `Save failed (${r.status})`);
+      }else{
+        const text=await r.text();
+        throw new Error(text || `Unexpected response (status ${r.status})`);
+      }
       await loadDay(days[0].work_date); // reload the day we added to
       quickDlg.hide();
     }catch(e){ console.error(e); alert(e.message || 'Failed to save job.'); }
