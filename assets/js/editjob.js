@@ -1,7 +1,7 @@
-// /schedule-ng/assets/js/editjob.js
+// /095/schedule-ng/assets/js/editjob.js
 (function () {
   const CFG = window.SCH_CFG || {};
-  const BASE = CFG.BASE_PATH || "/schedule-ng";
+  const BASE = CFG.BASE_PATH || "/095/schedule-ng";
   const API = (window.SCH_CFG && window.SCH_CFG.API) || {};
 
   // Allow either the new names (editRead/editSave) or your existing jobFull/jobUpdate keys.
