@@ -130,19 +130,19 @@ try {
     $sqlIns = "INSERT INTO job_days (
                 uid, job_uid, work_date, start_time, end_time,
                 contractor_id, location,
-                tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, electricians,
+                tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, crew_transport, electricians,
                 day_notes, status, created_at
-              ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
+              ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
     $stIns = must_prepare($mysqli, $sqlIns);
-    $typesIns = 'sssssis' . str_repeat('i', 9) . 'ss';
+    $typesIns = 'sssssis' . str_repeat('i', 10) . 'ss';
 
     $sqlUpd = "UPDATE job_days SET
                 work_date=?, start_time=?, end_time=?, contractor_id=?, location=?,
-                tractors=?, bobtails=?, movers=?, drivers=?, installers=?, pctechs=?, supervisors=?, project_managers=?, electricians=?,
+                tractors=?, bobtails=?, movers=?, drivers=?, installers=?, pctechs=?, supervisors=?, project_managers=?, crew_transport=?, electricians=?,
                 day_notes=?, status=?
               WHERE uid=?";
     $stUpd = must_prepare($mysqli, $sqlUpd);
-    $typesUpd = 'sssis' . str_repeat('i', 9) . 'sss';
+    $typesUpd = 'sssis' . str_repeat('i', 10) . 'sss';
 
     $day_uid_by_index = [];
     $newEvents        = [];
@@ -164,6 +164,7 @@ try {
         $pctechs     = (int)($d['pctechs']     ?? 0);
         $supervisors = (int)($d['supervisors'] ?? 0);
         $pms         = (int)($d['project_managers'] ?? 0);
+        $crew        = (int)($d['crew_transport'] ?? 0);
         $elec        = (int)($d['electricians'] ?? 0);
 
         $day_notes = $d['day_notes'] ?? null;
@@ -172,7 +173,7 @@ try {
         if ($day_uid) {
             if (!$stUpd->bind_param($typesUpd,
                 $work_date, $start_time, $end_time, $contractor_id, $location,
-                $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $elec,
+                $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
                 $day_notes, $dstatus, $day_uid
             )) {
                 throw new Exception('bind_param failed (job_days update): ' . $stUpd->error);
@@ -185,7 +186,7 @@ try {
             if (!$stIns->bind_param($typesIns,
                 $day_uid, $job_uid, $work_date, $start_time, $end_time,
                 $contractor_id, $location,
-                $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $elec,
+                $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
                 $day_notes, $dstatus
             )) {
                 throw new Exception('bind_param failed (job_days insert): ' . $stIns->error);
