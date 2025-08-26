@@ -56,8 +56,11 @@ function ensure_dir(string $dir) {
 }
 
 function safe_filename(string $n) {
-    $n = preg_replace('/[^\w.\-]+/u', '_', $n);
-    return ltrim($n, '.') ?: ('file_' . bin2hex(random_bytes(4)));
+    $n = basename($n);
+    $n = str_replace(['/', '\\'], '_', $n);
+    $n = preg_replace('/[<>:"\\|?*\x00-\x1F]/u', '_', $n);
+    $n = trim($n, '. ');
+    return $n === '' ? ('file_' . bin2hex(random_bytes(4))) : $n;
 }
 
 /** Rebuild PHP's nested $_FILES structure into a list for a given day bucket. */
@@ -238,6 +241,7 @@ try {
                         continue;
                     }
                     $name = safe_filename($f['name']);
+                    dbg('    bol name ' . $f['name'] . ' -> ' . $name);
                     $target = $dir . $name;
                     if (move_uploaded_file($f['tmp'], $target)) {
                         dbg('    saved bol ' . $target);
@@ -255,6 +259,7 @@ try {
                 $dir = __DIR__ . '/../uploads/' . $uid . '/extra/';
                 ensure_dir($dir);
                 $name = safe_filename($f['name']);
+                dbg('    extra name ' . $f['name'] . ' -> ' . $name);
                 $target = $dir . $name;
                 if (move_uploaded_file($f['tmp'], $target)) {
                     dbg('    saved extra ' . $target);
