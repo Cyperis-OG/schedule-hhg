@@ -17,6 +17,24 @@ function must_prepare(mysqli $db, string $sql): mysqli_stmt {
   return $stmt;
 }
 
+// Check if a column exists in a table (cached per request)
+function column_exists(mysqli $db, string $table, string $col): bool {
+  static $cache = [];
+  $key = $table . '.' . $col;
+  if (!array_key_exists($key, $cache)) {
+    $stmt = $db->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
+    if ($stmt) {
+      $stmt->bind_param('s', $col);
+      $stmt->execute();
+      $cache[$key] = (bool)$stmt->get_result()->fetch_assoc();
+      $stmt->close();
+    } else {
+      $cache[$key] = false;
+    }
+  }
+  return $cache[$key];
+}
+
 try {
   if (!$jobUid && $fromDayUid) {
     // resolve master job uid from a day uid
@@ -47,21 +65,22 @@ try {
   if (!$job) { echo json_encode(['ok'=>false,'error'=>'Job not found']); exit; }
 
   // all days for that job — join jobs to expose label columns expected by templates
+  $crewSel = column_exists($mysqli, 'job_days', 'crew_transport') ? 'jd.crew_transport' : '0';
   $stmt = must_prepare(
     $mysqli,
-    'SELECT
+    "SELECT
       jd.uid           AS Id,
       jd.job_uid       AS JobUID,
       jd.work_date     AS work_date,
-      CONCAT(jd.work_date, "T", DATE_FORMAT(jd.start_time, "%H:%i")) AS StartTime,
-      CONCAT(jd.work_date, "T", DATE_FORMAT(jd.end_time, "%H:%i"))   AS EndTime,
-      DATE_FORMAT(jd.start_time, "%H:%i") AS start_time,
-      DATE_FORMAT(jd.end_time,   "%H:%i") AS end_time,
+      CONCAT(jd.work_date, 'T', DATE_FORMAT(jd.start_time, '%H:%i')) AS StartTime,
+      CONCAT(jd.work_date, 'T', DATE_FORMAT(jd.end_time, '%H:%i'))   AS EndTime,
+      DATE_FORMAT(jd.start_time, '%H:%i') AS start_time,
+      DATE_FORMAT(jd.end_time,   '%H:%i') AS end_time,
       jd.contractor_id AS contractor_id,
       jd.location      AS Location,
       jd.tractors, jd.bobtails, jd.movers, jd.drivers,
       jd.installers, jd.pctechs, jd.supervisors,
-      jd.project_managers, jd.crew_transport, jd.electricians,
+      jd.project_managers, $crewSel AS crew_transport, jd.electricians,
       jd.day_notes     AS day_notes,
       jd.status        AS status,
       j.title          AS customer,
@@ -70,7 +89,7 @@ try {
     FROM job_days jd
     JOIN jobs j ON j.uid = jd.job_uid
     WHERE jd.job_uid = ?
-    ORDER BY jd.work_date, jd.start_time'
+    ORDER BY jd.work_date, jd.start_time"
   );
   $stmt->bind_param('s', $jobUid);
   $stmt->execute();
