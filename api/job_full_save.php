@@ -6,16 +6,26 @@ header('Content-Type: application/json');
 
 require_once '/home/freeman/job_scheduler.php';  // absolute path used elsewhere
 
+// Simple debug helper to trace execution. Logs messages to PHP's error log
+// with a recognizable prefix so we can follow the flow in production.
+function dbg(string $msg): void {
+    error_log('[job_full_save] ' . $msg);
+}
+
 // ----------- Payload parsing (JSON or multipart with payload field) -----------
 $ct = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
 $isJson = stripos($ct, 'application/json') !== false;
+dbg('incoming request. ct=' . $ct . ' isJson=' . ($isJson ? '1' : '0'));
 
 if ($isJson) {
     $payload   = json_decode(file_get_contents('php://input'), true);
     $filesRoot = null; // no files in pure JSON mode
+    dbg('payload(json) ' . json_encode($payload));
 } else {
     $payload   = json_decode($_POST['payload'] ?? '', true);
     $filesRoot = $_FILES['files'] ?? null; // may be missing
+    dbg('payload(form) ' . json_encode($payload));
+    dbg('filesRoot keys: ' . implode(',', array_keys($filesRoot ?? [])));
 }
 
 if (!$payload || empty($payload['job_uid']) || empty($payload['job']) || empty($payload['days']) || !is_array($payload['days'])) {
@@ -28,6 +38,7 @@ $job_uid     = preg_replace('/[^a-fA-F0-9]/', '', $payload['job_uid']);
 $job         = $payload['job'];
 $days        = $payload['days'];
 $delete_uids = $payload['delete_uids'] ?? [];
+dbg('job_uid=' . $job_uid . ' days=' . count($days));
 
 // ----------- helpers (borrowed from job_save.php) -----------
 function must_prepare(mysqli $db, string $sql): mysqli_stmt {
@@ -206,9 +217,11 @@ try {
     if ($filesRoot) {
         foreach ($day_uid_by_index as $i => $uid) {
             $saved[$i] = ['bol' => [], 'extra' => []];
+            dbg("processing files for day index $i uid $uid");
 
             // BOL / CSO -> accept only PDFs. If new BOL uploaded, replace existing.
             $bolFiles = collect_uploaded($filesRoot, $i, 'bol');
+            dbg('  bol count=' . count($bolFiles));
             if ($bolFiles) {
                 $dir = __DIR__ . '/../uploads/' . $uid . '/bol/';
                 if (is_dir($dir)) {
@@ -220,21 +233,34 @@ try {
                 ensure_dir($dir);
                 foreach ($bolFiles as $f) {
                     $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
-                    if ($ext !== 'pdf') continue;
+                    if ($ext !== 'pdf') {
+                        dbg('    skipped non-pdf ' . $f['name']);
+                        continue;
+                    }
                     $name = safe_filename($f['name']);
-                    if (move_uploaded_file($f['tmp'], $dir . $name)) {
+                    $target = $dir . $name;
+                    if (move_uploaded_file($f['tmp'], $target)) {
+                        dbg('    saved bol ' . $target);
                         $saved[$i]['bol'][] = '/095/schedule-ng/uploads/' . $uid . '/bol/' . $name;
+                    } else {
+                        dbg('    failed to move bol to ' . $target);
                     }
                 }
             }
 
             // Additional files (any type, append)
-            foreach (collect_uploaded($filesRoot, $i, 'extra') as $f) {
+            $extraFiles = collect_uploaded($filesRoot, $i, 'extra');
+            dbg('  extra count=' . count($extraFiles));
+            foreach ($extraFiles as $f) {
                 $dir = __DIR__ . '/../uploads/' . $uid . '/extra/';
                 ensure_dir($dir);
                 $name = safe_filename($f['name']);
-                if (move_uploaded_file($f['tmp'], $dir . $name)) {
+                $target = $dir . $name;
+                if (move_uploaded_file($f['tmp'], $target)) {
+                    dbg('    saved extra ' . $target);
                     $saved[$i]['extra'][] = '/095/schedule-ng/uploads/' . $uid . '/extra/' . $name;
+                } else {
+                    dbg('    failed to move extra to ' . $target);
                 }
             }
         }
