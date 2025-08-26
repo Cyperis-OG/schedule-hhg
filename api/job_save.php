@@ -53,17 +53,13 @@ function must_prepare(mysqli $db, string $sql): mysqli_stmt {
 function uid26(): string { return bin2hex(random_bytes(13)); }
 
 function ensure_dir(string $dir){ if(!is_dir($dir)) @mkdir($dir, 0775, true); }
-// Generate a numeric filename based on current date/time (mmddyyyyhhmmss).
-// Appends an incrementing counter if invoked multiple times within the
-// same second to keep names unique. Optionally appends an extension.
-function timestamp_filename(string $ext = ''): string {
-  static $seq = 0;
-  $seq++;
-  $name = date('mdYHis');
-  if ($seq > 1) {
-    $name .= str_pad((string)$seq, 2, '0', STR_PAD_LEFT);
-  }
-  return $name . ($ext ? ".{$ext}" : '');
+// Sanitize a user-supplied filename by stripping any directory components and
+// replacing disallowed characters with underscores. Falls back to "file" if
+// the resulting name is empty.
+function sanitize_filename(string $name): string {
+  $name = basename($name);
+  $name = preg_replace('/[^A-Za-z0-9._-]/', '_', $name);
+  return $name !== '' ? $name : 'file';
 }
 
 /** Rebuild PHP's nested $_FILES structure into a list for a given day bucket. */
@@ -213,7 +209,7 @@ try {
         foreach ($bolFiles as $f) {
           $ext = strtolower(trim(pathinfo($f['name'], PATHINFO_EXTENSION)));
           if ($ext !== 'pdf') continue;
-          $name = timestamp_filename('pdf');
+          $name = sanitize_filename($f['name']);
           if (move_uploaded_file($f['tmp'], $dir.$name)) {
             $saved[$i]['bol'][] = '/095/schedule-ng/uploads/' . $uid . '/bol/' . $name;
           }
@@ -224,8 +220,7 @@ try {
       foreach (collect_uploaded($filesRoot, $i, 'extra') as $f) {
         $dir = __DIR__ . '/../uploads/' . $uid . '/extra/';
         ensure_dir($dir);
-        $ext = strtolower(trim(pathinfo($f['name'], PATHINFO_EXTENSION)));
-        $name = timestamp_filename($ext);
+        $name = sanitize_filename($f['name']);
         if (move_uploaded_file($f['tmp'], $dir.$name)) {
           $saved[$i]['extra'][] = '/095/schedule-ng/uploads/' . $uid . '/extra/' . $name;
         }
