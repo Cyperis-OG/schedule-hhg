@@ -134,20 +134,20 @@ try {
      job_days columns we fill (in order):
        uid, job_uid, work_date, start_time, end_time,
        contractor_id, location,
-       tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, electricians,
+       tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, crew_transport, electricians,
        day_notes, status, created_at
   */
   $sqlDay = "INSERT INTO job_days (
                uid, job_uid, work_date, start_time, end_time,
                contractor_id, location,
-               tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, electricians,
+               tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, crew_transport, electricians,
                day_notes, status, created_at
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
 
   $stDay = must_prepare($mysqli, $sqlDay);
 
-  // types: s(uid) s(job_uid) s(work_date) s(start_time) s(end_time) i(contractor_id) s(location) + 9*i + s(day_notes) s(status)
-  $types = 'sssssis' . str_repeat('i', 9) . 'ss';
+  // types: s(uid) s(job_uid) s(work_date) s(start_time) s(end_time) i(contractor_id) s(location) + 10*i + s(day_notes) s(status)
+  $types = 'sssssis' . str_repeat('i', 10) . 'ss';
 
   $day_uid_by_index = [];
   $newEvents        = [];
@@ -170,6 +170,7 @@ try {
     $pctechs       = (int)($d['pctechs'] ?? 0);
     $supervisors   = (int)($d['supervisors'] ?? 0);
     $pms           = (int)($d['project_managers'] ?? 0);
+    $crew          = (int)($d['crew_transport'] ?? 0);
     $elec          = (int)($d['electricians'] ?? 0);
 
     $day_notes     = $d['day_notes'] ?? null;
@@ -178,7 +179,7 @@ try {
     if (!$stDay->bind_param($types,
       $day_uid, $job_uid, $work_date, $start_time, $end_time,
       $contractor_id, $location,
-      $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $elec,
+      $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
       $day_notes, $dstatus
     )) { throw new Exception('bind_param failed (job_days): '.$stDay->error); }
 
