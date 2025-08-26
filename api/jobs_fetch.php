@@ -61,7 +61,18 @@ $sqlE = "SELECT
            jd.end_time,
            jd.contractor_id,
            jd.location,
-           jd.status
+           jd.status,
+           jd.tractors,
+           jd.bobtails,
+           jd.drivers,
+           jd.movers,
+           jd.installers,
+           jd.pctechs,
+           jd.supervisors,
+           jd.project_managers,
+           jd.crew_transport,
+           jd.electricians,
+           jd.day_notes
          FROM job_days jd
          LEFT JOIN jobs j ON j.uid = jd.job_uid
          WHERE jd.work_date = ?
@@ -90,9 +101,20 @@ if ($stmt = $mysqli->prepare($sqlE)) {
       'JobNumber'    => $row['job_number'],
       'StartTime'    => isoDT($row['work_date'], $row['start_time']),
       'EndTime'      => isoDT($row['work_date'], $row['end_time']),
-      'ContractorId' => is_null($row['contractor_id']) ? null : (int)$row['contractor_id'],
-      'Location'     => $row['location'],
-      'Status'       => $row['status']
+      'ContractorId'   => is_null($row['contractor_id']) ? null : (int)$row['contractor_id'],
+      'Location'       => $row['location'],
+      'Status'         => $row['status'],
+      'tractors'       => (int)$row['tractors'],
+      'bobtails'       => (int)$row['bobtails'],
+      'drivers'        => (int)$row['drivers'],
+      'movers'         => (int)$row['movers'],
+      'installers'     => (int)$row['installers'],
+      'pctechs'        => (int)$row['pctechs'],
+      'supervisors'    => (int)$row['supervisors'],
+      'project_managers'=> (int)$row['project_managers'],
+      'crew_transport'  => (int)$row['crew_transport'],
+      'electricians'    => (int)$row['electricians'],
+      'day_notes'       => $row['day_notes']
     ];
     if ($files['bol'] || $files['extra']) {
       $event['files'] = $files;
