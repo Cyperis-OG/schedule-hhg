@@ -70,6 +70,7 @@ $sqlE = "SELECT
            jd.pctechs,
            jd.supervisors,
            jd.project_managers,
+           jd.crew_transport,
            jd.electricians,
            jd.day_notes
          FROM job_days jd
@@ -111,6 +112,7 @@ if ($stmt = $mysqli->prepare($sqlE)) {
       'pctechs'        => (int)$row['pctechs'],
       'supervisors'    => (int)$row['supervisors'],
       'project_managers'=> (int)$row['project_managers'],
+      'crew_transport'  => (int)$row['crew_transport'],
       'electricians'    => (int)$row['electricians'],
       'day_notes'       => $row['day_notes']
     ];
