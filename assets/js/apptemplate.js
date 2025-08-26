@@ -1,4 +1,3 @@
-// /095/schedule-ng/assets/js/apptemplate.js
 (function () {
   if (!window.sch) return;
 
@@ -6,6 +5,38 @@
     String(s ?? '').replace(/[&<>"']/g, (m) => (
       { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]
     ));
+
+  let filePopup = null;
+  const closePopup = () => {
+    if (filePopup) {
+      filePopup.remove();
+      filePopup = null;
+      document.removeEventListener('pointerdown', outsideListener, true);
+    }
+  };
+  const outsideListener = (ev) => {
+    if (filePopup && !filePopup.contains(ev.target)) closePopup();
+  };
+  const showAttachments = (anchor, files) => {
+    closePopup();
+
+    const list = [];
+    (files?.bol || []).forEach(u => list.push(`<li><a href="${u}" target="_blank">${u.split('/').pop()}</a></li>`));
+    (files?.extra || []).forEach(u => list.push(`<li><a href="${u}" target="_blank">${u.split('/').pop()}</a></li>`));
+    if (!list.length) return;
+
+    const popup = document.createElement('div');
+    popup.className = 'file-popup';
+    popup.innerHTML = `<ul>${list.join('')}</ul>`;
+    document.body.appendChild(popup);
+
+    const r = anchor.getBoundingClientRect();
+    popup.style.left = `${r.left + window.scrollX}px`;
+    popup.style.top  = `${r.bottom + window.scrollY + 4}px`;
+
+    filePopup = popup;
+    document.addEventListener('pointerdown', outsideListener, true);
+  };
 
   const renderTile = (args) => {
     const d = args?.data || {};
@@ -21,6 +52,18 @@
           <div class="appt-bot">${esc(cust)}</div>
         </div>
       `;
+      const f = d.files;
+      if (f && ((f.bol && f.bol.length) || (f.extra && f.extra.length))) {
+        const icon = document.createElement('span');
+        icon.className = 'file-clip';
+        icon.textContent = '📎';
+        icon.title = 'View attachments';
+        icon.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          showAttachments(icon, f);
+        });
+        args.element.appendChild(icon);
+      }
     }
   };
 
