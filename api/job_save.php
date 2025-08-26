@@ -53,7 +53,17 @@ function must_prepare(mysqli $db, string $sql): mysqli_stmt {
 function uid26(): string { return bin2hex(random_bytes(13)); }
 
 function ensure_dir(string $dir){ if(!is_dir($dir)) @mkdir($dir, 0775, true); }
-function safe_filename(string $n){ $n=preg_replace('/[^\w.\-]+/u','_',$n); return ltrim($n,'.') ?: ('file_'.bin2hex(random_bytes(4))); }
+// Sanitize filenames while preserving as many characters as possible.
+// Replaces directory separators and disallowed characters with underscores
+// and trims leading dots/whitespace. Falls back to a random name if the
+// result is empty so that *any* incoming filename is accepted.
+function safe_filename(string $n) {
+  $n = basename($n);
+  $n = str_replace(['/', '\\'], '_', $n);
+  $n = preg_replace('/[<>:"\\|?*\x00-\x1F]/u', '_', $n);
+  $n = trim($n, '. ');
+  return $n === '' ? ('file_' . bin2hex(random_bytes(4))) : $n;
+}
 
 /** Rebuild PHP's nested $_FILES structure into a list for a given day bucket. */
 function collect_uploaded($filesRoot, int $dayIdx, string $bucket): array {
@@ -200,7 +210,7 @@ try {
         }
         ensure_dir($dir);
         foreach ($bolFiles as $f) {
-          $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+          $ext = strtolower(trim(pathinfo($f['name'], PATHINFO_EXTENSION)));
           if ($ext !== 'pdf') continue;
           $name = safe_filename($f['name']);
           if (move_uploaded_file($f['tmp'], $dir.$name)) {
