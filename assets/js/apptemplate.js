@@ -22,12 +22,17 @@
     closePopup();
 
     const list = [];
+    const hasBol = files?.bol && files.bol.length;
     (files?.bol || []).forEach(u =>
       list.push(`<li>BOL/CSO: <a href="${u}" target="_blank">${u.split('/').pop()}</a></li>`)
     );
-    (files?.extra || []).forEach(u =>
-      list.push(`<li>Additional File: <a href="${u}" target="_blank">${u.split('/').pop()}</a></li>`)
-    );
+    if (files?.extra && files.extra.length) {
+      const cls = hasBol ? ' class="extra-heading"' : '';
+      list.push(`<li${cls}>Additional File:</li>`);
+      files.extra.forEach(u =>
+        list.push(`<li><a href="${u}" target="_blank">${u.split('/').pop()}</a></li>`)
+      );
+    }
     if (!list.length) return;
 
     const popup = document.createElement('div');
