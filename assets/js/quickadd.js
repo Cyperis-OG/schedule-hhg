@@ -166,6 +166,7 @@
               ['pctechs','PC Techs'],
               ['supervisors','Supervisors'],
               ['project_managers','Project Managers'],
+              ['crew_transport','Crew Transport'],
               ['electricians','Electricians']
             ].map(([key,label])=>`
               <div class="qa-row"><label>${label}</label>
@@ -260,7 +261,7 @@
         movers: g('movers'), drivers: g('drivers'),
         installers: g('installers'), pctechs: g('pctechs'),
         supervisors: g('supervisors'), project_managers: g('project_managers'),
-        electricians: g('electricians'),
+        crew_transport: g('crew_transport'), electricians: g('electricians'),
         notes: card.querySelector(`[name="day.${idx}.notes"]`)?.value ?? ''
       });
     }
@@ -289,7 +290,7 @@
       addDay({
         date: nextDate, start24: startS, end24: endS,
         location: '', tractors:0, bobtails:0, movers:0, drivers:0, installers:0,
-        pctechs:0, supervisors:0, project_managers:0, electricians:0, notes:''
+        pctechs:0, supervisors:0, project_managers:0, crew_transport:0, electricians:0, notes:''
       });
     });
 
@@ -359,6 +360,7 @@
           installers:+(g('installers')||0), pctechs:+(g('pctechs')||0),
           supervisors:+(g('supervisors')||0),
           project_managers:+(g('project_managers')||0),
+          crew_transport:+(g('crew_transport')||0),
           electricians:+(g('electricians')||0),
           day_notes:(card.querySelector(`[name="day.${idx}.notes"]`)?.value||'').trim() || null,
           status: job.status,
