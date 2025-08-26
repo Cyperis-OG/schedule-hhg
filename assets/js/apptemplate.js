@@ -1,3 +1,4 @@
+// /095/schedule-ng/assets/js/apptemplate.js
 (function () {
   if (!window.sch) return;
 
@@ -52,8 +53,9 @@
           <div class="appt-bot">${esc(cust)}</div>
         </div>
       `;
+      const wrap = args.element.querySelector('.appt');
       const f = d.files;
-      if (f && ((f.bol && f.bol.length) || (f.extra && f.extra.length))) {
+      if (wrap && f && ((f.bol && f.bol.length) || (f.extra && f.extra.length))) {
         const icon = document.createElement('span');
         icon.className = 'file-clip';
         icon.textContent = '📎';
@@ -62,7 +64,7 @@
           ev.stopPropagation();
           showAttachments(icon, f);
         });
-        args.element.appendChild(icon);
+        wrap.appendChild(icon);
       }
     }
   };
