@@ -56,9 +56,8 @@
       const wrap = args.element.querySelector('.appt');
       const f = d.files;
       if (wrap && f && ((f.bol && f.bol.length) || (f.extra && f.extra.length))) {
-        const icon = document.createElement('span');
-        icon.className = 'file-clip';
-        icon.textContent = '📎';
+        const icon = document.createElement('i');
+        icon.className = 'file-clip fa-solid fa-paperclip';
         icon.title = 'View attachments';
         icon.addEventListener('click', (ev) => {
           ev.stopPropagation();
