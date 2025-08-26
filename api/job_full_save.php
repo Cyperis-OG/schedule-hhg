@@ -55,6 +55,10 @@ function ensure_dir(string $dir) {
     if (!is_dir($dir)) @mkdir($dir, 0775, true);
 }
 
+// Sanitize filenames while preserving as many characters as possible.
+// Replaces directory separators and disallowed characters with underscores,
+// trims leading dots/whitespace, and falls back to a random name if empty
+// so that any incoming filename is accepted.
 function safe_filename(string $n) {
     $n = basename($n);
     $n = str_replace(['/', '\\'], '_', $n);
@@ -235,7 +239,7 @@ try {
                 }
                 ensure_dir($dir);
                 foreach ($bolFiles as $f) {
-                    $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+                    $ext = strtolower(trim(pathinfo($f['name'], PATHINFO_EXTENSION)));
                     if ($ext !== 'pdf') {
                         dbg('    skipped non-pdf ' . $f['name']);
                         continue;
