@@ -16,7 +16,7 @@ html, body { height:100%; margin:0; }
 #Schedule { height: calc(100% - 40px); }
 
 /* Appointment template */
-.appt { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; line-height:1.2; }
+.appt { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; line-height:1.2; width:100%; }
 .appt-left { display:flex; flex-direction:column; flex:1; min-width:0; }
 .appt-right { flex-shrink:0; margin-left:10px; }
 .appt-top { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
