@@ -58,13 +58,17 @@
     if (args.element) {
       args.element.innerHTML = `
         <div class="appt">
-          <div class="appt-top">${esc(top)}</div>
-          <div class="appt-bot">${esc(cust)}</div>
+          <div class="appt-left">
+            <div class="appt-top">${esc(top)}</div>
+            <div class="appt-bot">${esc(cust)}</div>
+          </div>
         </div>
       `;
       const wrap = args.element.querySelector('.appt');
       const f = d.files;
       if (wrap && f && ((f.bol && f.bol.length) || (f.extra && f.extra.length))) {
+        const right = document.createElement('div');
+        right.className = 'appt-right';
         const icon = document.createElement('i');
         icon.className = 'file-clip fa-solid fa-paperclip';
         icon.title = 'View attachments';
@@ -72,7 +76,8 @@
           ev.stopPropagation();
           showAttachments(icon, f);
         });
-        wrap.appendChild(icon);
+        right.appendChild(icon);
+        wrap.appendChild(right);
       }
     }
   };
