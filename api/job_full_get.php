@@ -61,7 +61,7 @@ try {
       jd.location      AS Location,
       jd.tractors, jd.bobtails, jd.movers, jd.drivers,
       jd.installers, jd.pctechs, jd.supervisors,
-      jd.project_managers, jd.electricians,
+      jd.project_managers, jd.crew_transport, jd.electricians,
       jd.day_notes     AS day_notes,
       jd.status        AS status,
       j.title          AS customer,
