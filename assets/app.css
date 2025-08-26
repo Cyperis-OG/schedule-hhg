@@ -16,13 +16,15 @@ html, body { height:100%; margin:0; }
 #Schedule { height: calc(100% - 40px); }
 
 /* Appointment template */
-.appt { padding:6px 8px; line-height:1.2; position:relative; padding-right:28px; }
+.appt { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; line-height:1.2; }
+.appt-left { display:flex; flex-direction:column; flex:1; min-width:0; }
+.appt-right { flex-shrink:0; margin-left:10px; }
 .appt-top { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .appt-bot { font-size:12px; opacity:.9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 /* Let our template control boldness */
 .e-schedule .e-appointment .e-subject { font-weight:inherit; }
 
-.file-clip{position:absolute;top:50%;right:0;transform:translateY(-50%);font-size:24px;color:#fff;cursor:pointer;}
+.file-clip{font-size:24px;color:#fff;cursor:pointer;}
 
 .file-popup{position:absolute;z-index:1000;background:#fff;border:1px solid #d4d4d8;border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,0.2);padding:6px 8px;}
 .file-popup ul{list-style:none;margin:0;padding:0;}
