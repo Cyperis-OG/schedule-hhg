@@ -53,16 +53,17 @@ function must_prepare(mysqli $db, string $sql): mysqli_stmt {
 function uid26(): string { return bin2hex(random_bytes(13)); }
 
 function ensure_dir(string $dir){ if(!is_dir($dir)) @mkdir($dir, 0775, true); }
-// Sanitize filenames while preserving as many characters as possible.
-// Replaces directory separators and disallowed characters with underscores
-// and trims leading dots/whitespace. Falls back to a random name if the
-// result is empty so that *any* incoming filename is accepted.
-function safe_filename(string $n) {
-  $n = basename($n);
-  $n = str_replace(['/', '\\'], '_', $n);
-  $n = preg_replace('/[<>:"\\|?*\x00-\x1F]/u', '_', $n);
-  $n = trim($n, '. ');
-  return $n === '' ? ('file_' . bin2hex(random_bytes(4))) : $n;
+// Generate a numeric filename based on current date/time (mmddyyyyhhmmss).
+// Appends an incrementing counter if invoked multiple times within the
+// same second to keep names unique. Optionally appends an extension.
+function timestamp_filename(string $ext = ''): string {
+  static $seq = 0;
+  $seq++;
+  $name = date('mdYHis');
+  if ($seq > 1) {
+    $name .= str_pad((string)$seq, 2, '0', STR_PAD_LEFT);
+  }
+  return $name . ($ext ? ".{$ext}" : '');
 }
 
 /** Rebuild PHP's nested $_FILES structure into a list for a given day bucket. */
@@ -212,7 +213,7 @@ try {
         foreach ($bolFiles as $f) {
           $ext = strtolower(trim(pathinfo($f['name'], PATHINFO_EXTENSION)));
           if ($ext !== 'pdf') continue;
-          $name = safe_filename($f['name']);
+          $name = timestamp_filename('pdf');
           if (move_uploaded_file($f['tmp'], $dir.$name)) {
             $saved[$i]['bol'][] = '/095/schedule-ng/uploads/' . $uid . '/bol/' . $name;
           }
@@ -223,7 +224,8 @@ try {
       foreach (collect_uploaded($filesRoot, $i, 'extra') as $f) {
         $dir = __DIR__ . '/../uploads/' . $uid . '/extra/';
         ensure_dir($dir);
-        $name = safe_filename($f['name']);
+        $ext = strtolower(trim(pathinfo($f['name'], PATHINFO_EXTENSION)));
+        $name = timestamp_filename($ext);
         if (move_uploaded_file($f['tmp'], $dir.$name)) {
           $saved[$i]['extra'][] = '/095/schedule-ng/uploads/' . $uid . '/extra/' . $name;
         }
