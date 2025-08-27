@@ -64,24 +64,6 @@ function sanitize_filename(string $name): string {
     return $name !== '' ? $name : 'file';
 }
 
-// Check if a given column exists in a table (cached per request)
-function column_exists(mysqli $db, string $table, string $col): bool {
-    static $cache = [];
-    $key = $table . '.' . $col;
-    if (!array_key_exists($key, $cache)) {
-        $stmt = $db->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
-        if ($stmt) {
-            $stmt->bind_param('s', $col);
-            $stmt->execute();
-            $cache[$key] = (bool)$stmt->get_result()->fetch_assoc();
-            $stmt->close();
-        } else {
-            $cache[$key] = false;
-        }
-    }
-    return $cache[$key];
-}
-
 /** Rebuild PHP's nested $_FILES structure into a list for a given day bucket. */
 function collect_uploaded($filesRoot, int $dayIdx, string $bucket): array {
     $out = [];
@@ -145,38 +127,20 @@ try {
     $stJob->close();
 
     // Prepared statements for day insert/update
-    $hasCrew = column_exists($mysqli, 'job_days', 'crew_transport');
-    if ($hasCrew) {
-        $sqlIns = "INSERT INTO job_days (
+    $sqlIns = "INSERT INTO job_days (
                 uid, job_uid, work_date, start_time, end_time,
                 contractor_id, location,
                 tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, crew_transport, electricians,
                 day_notes, status, created_at
               ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
-        $typesIns = 'sssssis' . str_repeat('i', 10) . 'ss';
+    $typesIns = 'sssssis' . str_repeat('i', 10) . 'ss';
 
-        $sqlUpd = "UPDATE job_days SET
+    $sqlUpd = "UPDATE job_days SET
                 work_date=?, start_time=?, end_time=?, contractor_id=?, location=?,
                 tractors=?, bobtails=?, movers=?, drivers=?, installers=?, pctechs=?, supervisors=?, project_managers=?, crew_transport=?, electricians=?,
                 day_notes=?, status=?
               WHERE uid=?";
-        $typesUpd = 'sssis' . str_repeat('i', 10) . 'sss';
-    } else {
-        $sqlIns = "INSERT INTO job_days (
-                uid, job_uid, work_date, start_time, end_time,
-                contractor_id, location,
-                tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, electricians,
-                day_notes, status, created_at
-              ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
-        $typesIns = 'sssssis' . str_repeat('i', 9) . 'ss';
-
-        $sqlUpd = "UPDATE job_days SET
-                work_date=?, start_time=?, end_time=?, contractor_id=?, location=?,
-                tractors=?, bobtails=?, movers=?, drivers=?, installers=?, pctechs=?, supervisors=?, project_managers=?, electricians=?,
-                day_notes=?, status=?
-              WHERE uid=?";
-        $typesUpd = 'sssis' . str_repeat('i', 9) . 'sss';
-    }
+    $typesUpd = 'sssis' . str_repeat('i', 10) . 'sss';
     $stIns = must_prepare($mysqli, $sqlIns);
     $stUpd = must_prepare($mysqli, $sqlUpd);
 
@@ -207,19 +171,11 @@ try {
         $dstatus   = $d['status'] ?? $status;
 
         if ($day_uid) {
-            if ($hasCrew) {
-                $params = [
-                    $work_date, $start_time, $end_time, $contractor_id, $location,
-                    $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
-                    $day_notes, $dstatus, $day_uid
-                ];
-            } else {
-                $params = [
-                    $work_date, $start_time, $end_time, $contractor_id, $location,
-                    $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $elec,
-                    $day_notes, $dstatus, $day_uid
-                ];
-            }
+            $params = [
+                $work_date, $start_time, $end_time, $contractor_id, $location,
+                $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
+                $day_notes, $dstatus, $day_uid
+            ];
             if (!$stUpd->bind_param($typesUpd, ...$params)) {
                 throw new Exception('bind_param failed (job_days update): ' . $stUpd->error);
             }
@@ -228,21 +184,12 @@ try {
             }
         } else {
             $day_uid = uid26();
-            if ($hasCrew) {
-                $params = [
-                    $day_uid, $job_uid, $work_date, $start_time, $end_time,
-                    $contractor_id, $location,
-                    $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
-                    $day_notes, $dstatus
-                ];
-            } else {
-                $params = [
-                    $day_uid, $job_uid, $work_date, $start_time, $end_time,
-                    $contractor_id, $location,
-                    $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $elec,
-                    $day_notes, $dstatus
-                ];
-            }
+            $params = [
+                $day_uid, $job_uid, $work_date, $start_time, $end_time,
+                $contractor_id, $location,
+                $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
+                $day_notes, $dstatus
+            ];
             if (!$stIns->bind_param($typesIns, ...$params)) {
                 throw new Exception('bind_param failed (job_days insert): ' . $stIns->error);
             }
