@@ -12,7 +12,7 @@ export async function loadDay(dateStr) {
     const r = await fetch(`/095/schedule-ng/api/jobs_fetch.php?date=${encodeURIComponent(dateStr)}`);
     const j = await r.json();
 
-    const events = (j.events || []).map(ev => ({
+    const rawEvents = (j.events || []).map(ev => ({
       ...ev,
       StartTime: (ev.StartTime instanceof Date)
         ? ev.StartTime
@@ -23,12 +23,18 @@ export async function loadDay(dateStr) {
       ContractorId: ev.ContractorId == null ? null : Number(ev.ContractorId)
     }));
     const resources = (j.resources || []).map(r => ({ ...r, id: Number(r.id) }));
+    const resIds = new Set(resources.map(r => Number(r.id)));
+    const events = rawEvents.filter(e => e.ContractorId == null || resIds.has(Number(e.ContractorId)));
+    const orphans = rawEvents.filter(e => e.ContractorId != null && !resIds.has(Number(e.ContractorId)));
 
     // Bind
     state.sch.resources[0].dataSource = resources;
     state.sch.eventSettings.dataSource = events;
 
     state.sch.dataBind();
+    if (orphans.length) {
+      console.warn('[loadDay] events with unknown ContractorId:', orphans.map(o => ({Id:o.Id, ContractorId:o.ContractorId})));
+    }
   } catch (e) {
     console.error('Failed to load schedule data:', e);
     state.sch.eventSettings.dataSource = []; state.sch.dataBind();
