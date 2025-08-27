@@ -3,6 +3,12 @@
 // Delete a single job day or an entire job (including all its days)
 header('Content-Type: application/json');
 require_once '/home/freeman/job_scheduler.php';
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+if (($_SESSION['role'] ?? '') !== 'admin') {
+    http_response_code(403);
+    echo json_encode(['ok'=>false,'error'=>'forbidden']);
+    exit;
+}
 
 $payload = json_decode(file_get_contents('php://input'), true);
 $job_uid = preg_replace('/[^a-fA-F0-9]/', '', $payload['job_uid'] ?? '');
