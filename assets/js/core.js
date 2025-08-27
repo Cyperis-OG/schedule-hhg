@@ -11,6 +11,7 @@ if (window.ej?.schedule?.Schedule?.Inject) {
 
 // --- Config / helpers (read from global config with fallbacks) ---
 const CFG = window.SCH_CFG || {};
+const IS_ADMIN = window.IS_ADMIN || false;
 const API = (CFG.API) ? CFG.API : {
   fetchDay:        './api/jobs_fetch.php',
   popup:           './api/popup_render.php',
@@ -55,6 +56,8 @@ window.sch = new ej.schedule.Schedule({
   selectedDate:new Date(),
   showQuickInfo:false,
   rowAutoHeight:true,
+  allowDragAndDrop: IS_ADMIN,
+  allowResizing: IS_ADMIN,
 
   // group by Contractors (vertical)
   group:{ resources:['Contractors'], orientation:'Vertical', allowGroupEdit:false },
@@ -83,6 +86,7 @@ window.sch = new ej.schedule.Schedule({
   },
 
   cellDoubleClick: (args) => {
+    if (!IS_ADMIN) return;
     if (!args?.startTime || !args?.endTime) return;
     if (!args.element?.classList?.contains('e-work-cells')) return; // only blank cells
     window.quickAdd?.open(args);
