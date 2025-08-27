@@ -23,15 +23,25 @@ async function loadDay(dateStr){
     const r = await fetch(`${API.fetchDay}?date=${encodeURIComponent(dateStr)}`);
     const j = await r.json();
 
-    window.sch.resources[0].dataSource   = normalizeResources(j.resources || []);
-    window.sch.eventSettings.dataSource  = normalizeEvents(j.events || []);
+    const resources = normalizeResources(j.resources || []);
+    const rawEvents = normalizeEvents(j.events || []);
+    const resIds = new Set(resources.map(r => Number(r.id)));
+    const events = rawEvents.filter(e => e.ContractorId == null || resIds.has(Number(e.ContractorId)));
+    const orphans = rawEvents.filter(e => e.ContractorId != null && !resIds.has(Number(e.ContractorId)));
+
+    window.sch.resources[0].dataSource   = resources;
+    window.sch.eventSettings.dataSource  = events;
     window.sch.dataBind();
 
+    if (orphans.length) {
+      console.warn('[loadDay] events with unknown ContractorId:', orphans.map(o => ({Id:o.Id, ContractorId:o.ContractorId})));
+    }
+
     console.log('[loadDay]', dateStr, {
-      events: (j.events||[]).length,
-      resources: (j.resources||[]).length,
-      sampleEvent: (j.events||[])[0],
-      sampleResource: (j.resources||[])[0]
+      events: events.length,
+      resources: resources.length,
+      sampleEvent: events[0],
+      sampleResource: resources[0]
     });
   }catch(e){
     console.error('Failed to load schedule data:', e);
