@@ -14,6 +14,8 @@
  *   /095/schedule-ng/api/job_save.php
  */
 include '/home/freeman/job_scheduler.php';
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
 // Load the template JSON
 $templatePath = __DIR__ . '/../config/job_form_template.json';
