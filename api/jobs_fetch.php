@@ -11,10 +11,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 $isAdmin = (($_SESSION['role'] ?? '') === 'admin');
 $ctrSession = $_SESSION['contractor_id'] ?? null;
-if (!$isAdmin && !$ctrSession) {
-  echo json_encode(['resources'=>[], 'events'=>[]]);
-  exit;
-}
+
 
 $day = $_GET['date'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
