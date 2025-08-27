@@ -56,7 +56,7 @@ function val($path, $row) {
                 if (isset($map[$sub]) && isset($row[$map[$sub]])) return nl2br(htmlspecialchars((string)$row[$map[$sub]]));
             }
         } elseif ($root === 'job_days') {
-            $subMap = ['start_time','end_time','location','status','tractors','bobtails','movers','drivers','installers','supervisors','pctechs','day_notes'];
+            $subMap = ['start_time','end_time','location','status','tractors','bobtails','movers','drivers','installers','supervisors','pctechs','project_managers','crew_transport','electricians','day_notes'];
             if (in_array($sub, $subMap, true) && isset($row[$sub])) return htmlspecialchars((string)$row[$sub]);
         } elseif ($root === 'contractors') {
             if ($sub === 'name') return htmlspecialchars((string)($row['contractor_name'] ?? ''));
