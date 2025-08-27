@@ -21,6 +21,8 @@ const API = (CFG.API) ? CFG.API : {
 const DEFAULT_TZ = CFG.DEFAULT_TZ || 'America/Chicago';
 const pad2  = (n)=>(n<10?'0':'')+n;
 const toYMD = (d)=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const initDateStr = CFG.INIT_DATE || toYMD(new Date());
+const initDate = ymdToLocalDate(initDateStr);
 
 
 function parseDateMaybeSpace(v){
@@ -53,7 +55,7 @@ window.sch = new ej.schedule.Schedule({
   timeZone: DEFAULT_TZ,
   startHour:'00:00', endHour:'24:00',
   resourceHeaderWidth:170,
-  selectedDate:new Date(),
+  selectedDate:initDate,
   showQuickInfo:false,
   rowAutoHeight:true,
   allowDragAndDrop: IS_ADMIN,
