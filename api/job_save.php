@@ -62,24 +62,6 @@ function sanitize_filename(string $name): string {
   return $name !== '' ? $name : 'file';
 }
 
-// Check if a given column exists in a table (cached per-request)
-function column_exists(mysqli $db, string $table, string $col): bool {
-  static $cache = [];
-  $key = $table . '.' . $col;
-  if (!array_key_exists($key, $cache)) {
-    $stmt = $db->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
-    if ($stmt) {
-      $stmt->bind_param('s', $col);
-      $stmt->execute();
-      $cache[$key] = (bool)$stmt->get_result()->fetch_assoc();
-      $stmt->close();
-    } else {
-      $cache[$key] = false;
-    }
-  }
-  return $cache[$key];
-}
-
 /** Rebuild PHP's nested $_FILES structure into a list for a given day bucket. */
 function collect_uploaded($filesRoot, int $dayIdx, string $bucket): array {
   $out = []; if(!$filesRoot) return $out;
@@ -149,24 +131,13 @@ try {
   $st->close();
 
   /* ===== Insert JOB DAYS (NO job_id; uses job_uid) ===== */
-  $hasCrew = column_exists($mysqli, 'job_days', 'crew_transport');
-  if ($hasCrew) {
-    $sqlDay = "INSERT INTO job_days (
+  $sqlDay = "INSERT INTO job_days (
                uid, job_uid, work_date, start_time, end_time,
                contractor_id, location,
                tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, crew_transport, electricians,
                day_notes, status, created_at
             ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
-    $types = 'sssssis' . str_repeat('i', 10) . 'ss';
-  } else {
-    $sqlDay = "INSERT INTO job_days (
-               uid, job_uid, work_date, start_time, end_time,
-               contractor_id, location,
-               tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, electricians,
-               day_notes, status, created_at
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
-    $types = 'sssssis' . str_repeat('i', 9) . 'ss';
-  }
+  $types = 'sssssis' . str_repeat('i', 10) . 'ss';
 
   $stDay = must_prepare($mysqli, $sqlDay);
 
@@ -197,17 +168,10 @@ try {
     $day_notes     = $d['day_notes'] ?? null;
     $dstatus       = $d['status'] ?? $status;
 
-    if ($hasCrew) {
-      $params = [$day_uid, $job_uid, $work_date, $start_time, $end_time,
-        $contractor_id, $location,
-        $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
-        $day_notes, $dstatus];
-    } else {
-      $params = [$day_uid, $job_uid, $work_date, $start_time, $end_time,
-        $contractor_id, $location,
-        $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $elec,
-        $day_notes, $dstatus];
-    }
+    $params = [$day_uid, $job_uid, $work_date, $start_time, $end_time,
+      $contractor_id, $location,
+      $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
+      $day_notes, $dstatus];
 
     if (!$stDay->bind_param($types, ...$params)) {
       throw new Exception('bind_param failed (job_days): '.$stDay->error);
