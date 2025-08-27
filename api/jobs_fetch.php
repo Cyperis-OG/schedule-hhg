@@ -17,24 +17,6 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
 
 function isoDT($d, $t) { return $d . 'T' . $t; }
 
-// Check if a column exists in a table (cached per request)
-function column_exists(mysqli $db, string $table, string $col): bool {
-  static $cache = [];
-  $key = $table . '.' . $col;
-  if (!array_key_exists($key, $cache)) {
-    $stmt = $db->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
-    if ($stmt) {
-      $stmt->bind_param('s', $col);
-      $stmt->execute();
-      $cache[$key] = (bool)$stmt->get_result()->fetch_assoc();
-      $stmt->close();
-    } else {
-      $cache[$key] = false;
-    }
-  }
-  return $cache[$key];
-}
-
 /* ----- RESOURCES FIRST ----- */
 $resources = [];
 $sqlR = "SELECT id, name, COALESCE(color_hex,'') AS color_hex
@@ -70,7 +52,6 @@ if (empty($resources)) {
 
 /* ----- EVENTS SECOND ----- */
 $events = [];
-$crewSel = column_exists($mysqli, 'job_days', 'crew_transport') ? 'jd.crew_transport' : '0 AS crew_transport';
 $sqlE = "SELECT
            jd.uid        AS id,
            j.title       AS title,
@@ -89,7 +70,7 @@ $sqlE = "SELECT
            jd.pctechs,
            jd.supervisors,
            jd.project_managers,
-           $crewSel,
+           jd.crew_transport,
            jd.electricians,
            jd.day_notes
          FROM job_days jd
