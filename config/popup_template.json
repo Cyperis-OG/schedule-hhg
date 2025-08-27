@@ -29,11 +29,14 @@
     {
       "label": "Labor",
       "rows": [
-        ["Supervisors", "{{job_days.supervisors}}"],
-        ["Drivers",     "{{job_days.drivers}}"],
-        ["Movers",      "{{job_days.movers}}"],
-        ["Installers",  "{{job_days.installers}}"],
-        ["PC Techs",    "{{job_days.pctechs}}"]
+        ["Supervisors",     "{{job_days.supervisors}}"],
+        ["Drivers",         "{{job_days.drivers}}"],
+        ["Movers",          "{{job_days.movers}}"],
+        ["Installers",      "{{job_days.installers}}"],
+        ["PC Techs",        "{{job_days.pctechs}}"],
+        ["Project Managers","{{job_days.project_managers}}"],
+        ["Crew Transport",  "{{job_days.crew_transport}}"],
+        ["Electricians",    "{{job_days.electricians}}"]
       ]
     },
     {
