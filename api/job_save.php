@@ -20,6 +20,12 @@
 
 header('Content-Type: application/json');
 require_once '/home/freeman/job_scheduler.php';
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+if (($_SESSION['role'] ?? '') !== 'admin') {
+  http_response_code(403);
+  echo json_encode(['ok'=>false,'error'=>'forbidden']);
+  exit;
+}
 
 /* ---------- Parse payload (JSON or multipart) ---------- */
 $ct = $_SERVER['CONTENT_TYPE'] ?? $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
