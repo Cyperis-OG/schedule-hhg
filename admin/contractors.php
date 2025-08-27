@@ -19,6 +19,8 @@
  *      hard-refresh the page (Ctrl/Cmd + Shift + R) to bust cache.
  */
 include '/home/freeman/job_scheduler.php';
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 ?>
 <!doctype html>
 <html lang="en">
@@ -185,6 +187,7 @@ include '/home/freeman/job_scheduler.php';
             <tr>
               <th class="order-col">Order</th>
               <th>Name</th>
+              <th>Email(s)</th>
               <th>Status</th>
               <th>Color</th>
               <th class="actions-col">Actions</th>
@@ -215,6 +218,10 @@ include '/home/freeman/job_scheduler.php';
         <div class="field">
           <label>Name</label>
           <input id="addName" type="text" placeholder="e.g., Eddie" />
+        </div>
+        <div class="field">
+          <label>Email(s)</label>
+          <input id="addEmail" type="text" placeholder="e.g., user@example.com" />
         </div>
         <div class="field">
           <label>Color (optional)</label>
@@ -251,6 +258,7 @@ include '/home/freeman/job_scheduler.php';
     const mBack    = document.getElementById('backdrop');
     const mRoot    = document.getElementById('modal');
     const addName  = document.getElementById('addName');
+    const addEmail = document.getElementById('addEmail');
     const addColorPick = document.getElementById('addColorPick');
     const addColorHex  = document.getElementById('addColorHex');
 
@@ -309,16 +317,22 @@ include '/home/freeman/job_scheduler.php';
           <div class="name-edit inline" style="display:none">
             <input class="edit-name" type="text" value="${esc(c.name)}" />
           </div>
-        </td>
-        <td>
-          <span class="badge ${c.active ? 'success' : 'muted'}">${c.active ? 'Active' : 'Disabled'}</span>
-        </td>
-        <td>
-          ${(c.color_hex ? `<span class="color-dot" style="background:${esc(c.color_hex)}"></span>` : `<span class="color-dot" style="background:#fff"></span>`)}
-          <span class="color-view">${esc(c.color_hex || '')}</span>
-          <div class="color-edit inline" style="display:none; margin-top:6px">
-            <input class="edit-color-pick" type="color" value="${esc(c.color_hex || '#0E4BAA')}" />
-            <input class="edit-color-hex" type="text" value="${esc(c.color_hex || '')}" placeholder="#0E4BAA" />
+          </td>
+          <td>
+            <div class="email-view">${esc(c.email_notify || '')}</div>
+            <div class="email-edit" style="display:none">
+              <input class="edit-email" type="text" value="${esc(c.email_notify || '')}" />
+            </div>
+          </td>
+          <td>
+            <span class="badge ${c.active ? 'success' : 'muted'}">${c.active ? 'Active' : 'Disabled'}</span>
+          </td>
+          <td>
+            ${(c.color_hex ? `<span class="color-dot" style="background:${esc(c.color_hex)}"></span>` : `<span class="color-dot" style="background:#fff"></span>`)}
+            <span class="color-view">${esc(c.color_hex || '')}</span>
+            <div class="color-edit inline" style="display:none; margin-top:6px">
+              <input class="edit-color-pick" type="color" value="${esc(c.color_hex || '#0E4BAA')}" />
+              <input class="edit-color-hex" type="text" value="${esc(c.color_hex || '')}" placeholder="#0E4BAA" />
           </div>
         </td>
         <td class="actions-col">
@@ -341,6 +355,10 @@ include '/home/freeman/job_scheduler.php';
       const nameEdit = tr.querySelector('.name-edit');
       const nameInp  = tr.querySelector('.edit-name');
 
+      const emailView = tr.querySelector('.email-view');
+      const emailEdit = tr.querySelector('.email-edit');
+      const emailInp  = tr.querySelector('.edit-email');
+
       const colorView = tr.querySelector('.color-view');
       const colorEdit = tr.querySelector('.color-edit');
       const colorPick = tr.querySelector('.edit-color-pick');
@@ -352,6 +370,8 @@ include '/home/freeman/job_scheduler.php';
         cancelBtn.style.display = '';
         nameView.style.display = 'none';
         nameEdit.style.display = '';
+        emailView.style.display = 'none';
+        emailEdit.style.display = '';
         colorView.style.display = 'none';
         colorEdit.style.display = '';
         nameInp.focus();
@@ -363,6 +383,8 @@ include '/home/freeman/job_scheduler.php';
         cancelBtn.style.display = 'none';
         nameView.style.display = '';
         nameEdit.style.display = 'none';
+        emailView.style.display = '';
+        emailEdit.style.display = 'none';
         colorView.style.display = '';
         colorEdit.style.display = 'none';
       });
@@ -372,10 +394,11 @@ include '/home/freeman/job_scheduler.php';
       saveBtn.addEventListener('click', async () => {
         const id = Number(tr.dataset.id);
         const name = nameInp.value.trim();
+        const email_notify = emailInp.value.trim();
         const color_hex = colorHex.value.trim();
         if (!name) return;
         try {
-          await mutate({ action:'update', id, name, color_hex });
+          await mutate({ action:'update', id, name, color_hex, email_notify });
           showToast('Contractor updated');
           await load();
         } catch(e){ showToast(e.message); }
@@ -446,11 +469,13 @@ include '/home/freeman/job_scheduler.php';
 
     saveAdd.addEventListener('click', async () => {
       const name = addName.value.trim();
+      const email_notify = addEmail.value.trim();
       const color_hex = addColorHex.value.trim();
       if (!name) { addName.focus(); return; }
       try {
-        await mutate({ action:'add', name, color_hex });
+        await mutate({ action:'add', name, color_hex, email_notify });
         addName.value = '';
+        addEmail.value = '';
         addColorHex.value = '#0E4BAA';
         addColorPick.value = '#0E4BAA';
         showModal(false);
