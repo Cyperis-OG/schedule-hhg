@@ -2,6 +2,8 @@
 // api/popup_render.php
 // Returns HTML for the quick-info popup using /config/popup_template.json
 include '/home/freeman/job_scheduler.php';
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+$isAdmin = (($_SESSION['role'] ?? '') === 'admin');
 
 header('Content-Type: application/json');
 
@@ -14,6 +16,11 @@ if ($job_day_uid === '') {
 // 1) Load template JSON
 $templatePath = __DIR__ . '/../config/popup_template.json';
 $template = json_decode(file_get_contents($templatePath), true);
+if (!$isAdmin && isset($template['actions']) && is_array($template['actions'])) {
+    $template['actions'] = array_values(array_filter($template['actions'], function($a) {
+        return !in_array($a['id'] ?? '', ['copy','edit','delete'], true);
+    }));
+}
 
 // 2) Fetch job_day + job + contractor rows
 $sql = "SELECT jd.*, j.title, j.job_number, j.salesman, j.status AS job_status, j.notes, j.meta AS job_meta,
