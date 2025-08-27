@@ -7,6 +7,14 @@
  */
 header('Content-Type: application/json');
 require_once '/home/freeman/job_scheduler.php';
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+
+$isAdmin = (($_SESSION['role'] ?? '') === 'admin');
+$ctrSession = $_SESSION['contractor_id'] ?? null;
+if (!$isAdmin && !$ctrSession) {
+  echo json_encode(['resources'=>[], 'events'=>[]]);
+  exit;
+}
 
 $day = $_GET['date'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
@@ -19,34 +27,53 @@ function isoDT($d, $t) { return $d . 'T' . $t; }
 
 /* ----- RESOURCES FIRST ----- */
 $resources = [];
-$sqlR = "SELECT id, name, COALESCE(color_hex,'') AS color_hex
-         FROM contractors
-         WHERE (status IS NULL OR LOWER(status)='active' OR status='1')
-         ORDER BY COALESCE(display_order, 9999) ASC, name ASC";
-if ($rs = $mysqli->query($sqlR)) {
-  while ($c = $rs->fetch_assoc()) {
-    $resources[] = [
-      'id'        => (int)$c['id'],
-      'name'      => $c['name'],
-      'color_hex' => $c['color_hex']
-    ];
-  }
-  $rs->close();
-}
-if (empty($resources)) {
-  // fallback: include everyone
-  if ($rs2 = $mysqli->query(
-        "SELECT id, name, COALESCE(color_hex,'') AS color_hex
-         FROM contractors
-         ORDER BY COALESCE(display_order, 9999) ASC, name ASC")) {
-    while ($c = $rs2->fetch_assoc()) {
+if (!$isAdmin && $ctrSession) {
+  $sqlR = "SELECT id, name, COALESCE(color_hex,'') AS color_hex
+           FROM contractors
+           WHERE id = ? LIMIT 1";
+  if ($stmt = $mysqli->prepare($sqlR)) {
+    $stmt->bind_param('i', $ctrSession);
+    $stmt->execute();
+    $rs = $stmt->get_result();
+    while ($c = $rs->fetch_assoc()) {
       $resources[] = [
         'id'        => (int)$c['id'],
         'name'      => $c['name'],
         'color_hex' => $c['color_hex']
       ];
     }
-    $rs2->close();
+    $stmt->close();
+  }
+} else {
+  $sqlR = "SELECT id, name, COALESCE(color_hex,'') AS color_hex
+           FROM contractors
+           WHERE (status IS NULL OR LOWER(status)='active' OR status='1')
+           ORDER BY COALESCE(display_order, 9999) ASC, name ASC";
+  if ($rs = $mysqli->query($sqlR)) {
+    while ($c = $rs->fetch_assoc()) {
+      $resources[] = [
+        'id'        => (int)$c['id'],
+        'name'      => $c['name'],
+        'color_hex' => $c['color_hex']
+      ];
+    }
+    $rs->close();
+  }
+  if (empty($resources)) {
+    // fallback: include everyone
+    if ($rs2 = $mysqli->query(
+          "SELECT id, name, COALESCE(color_hex,'') AS color_hex
+           FROM contractors
+           ORDER BY COALESCE(display_order, 9999) ASC, name ASC")) {
+      while ($c = $rs2->fetch_assoc()) {
+        $resources[] = [
+          'id'        => (int)$c['id'],
+          'name'      => $c['name'],
+          'color_hex' => $c['color_hex']
+        ];
+      }
+      $rs2->close();
+    }
   }
 }
 
@@ -75,11 +102,18 @@ $sqlE = "SELECT
            jd.day_notes
          FROM job_days jd
          LEFT JOIN jobs j ON j.uid = jd.job_uid
-         WHERE jd.work_date = ?
-         ORDER BY jd.start_time ASC";
+         WHERE jd.work_date = ?";
+if (!$isAdmin && $ctrSession) {
+  $sqlE .= " AND jd.contractor_id = ?";
+}
+$sqlE .= " ORDER BY jd.start_time ASC";
 
 if ($stmt = $mysqli->prepare($sqlE)) {
-  $stmt->bind_param('s', $day);
+  if (!$isAdmin && $ctrSession) {
+    $stmt->bind_param('si', $day, $ctrSession);
+  } else {
+    $stmt->bind_param('s', $day);
+  }
   $stmt->execute();
   $res = $stmt->get_result();
   while ($row = $res->fetch_assoc()) {
@@ -108,20 +142,3 @@ if ($stmt = $mysqli->prepare($sqlE)) {
       'bobtails'       => (int)$row['bobtails'],
       'drivers'        => (int)$row['drivers'],
       'movers'         => (int)$row['movers'],
-      'installers'     => (int)$row['installers'],
-      'pctechs'        => (int)$row['pctechs'],
-      'supervisors'    => (int)$row['supervisors'],
-      'project_managers'=> (int)$row['project_managers'],
-      'crew_transport'  => (int)$row['crew_transport'],
-      'electricians'    => (int)$row['electricians'],
-      'day_notes'       => $row['day_notes']
-    ];
-    if ($files['bol'] || $files['extra']) {
-      $event['files'] = $files;
-    }
-    $events[] = $event;
-  }
-  $stmt->close();
-}
-
-echo json_encode(['resources' => $resources, 'events' => $events]);
