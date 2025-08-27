@@ -4,6 +4,8 @@
  * Schedule NG — modular build (core + DnD + QuickAdd + QuickInfo)
  */
 include '/home/freeman/job_scheduler.php';
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+$isAdmin = (($_SESSION['role'] ?? '') === 'admin');
 ?>
 <!doctype html>
 <html lang="en">
@@ -20,16 +22,23 @@ include '/home/freeman/job_scheduler.php';
 <body>
   <header class="topbar">
     <div class="brand">Schedule NG</div>
-<label class="switch">
-  <input type="checkbox" id="dragToggle" checked>
-  <span class="slider round">Drag &amp; Drop</span>
-</label>
+    <?php if ($isAdmin): ?>
+      <label class="switch">
+        <input type="checkbox" id="dragToggle" checked>
+        <span class="slider round">Drag &amp; Drop</span>
+      </label>
+      <a href="./admin/">Admin</a>
+      <a href="logout.php">Logout</a>
+    <?php else: ?>
+      <a href="login.php">Admin Login</a>
+    <?php endif; ?>
   </header>
 
   <div id="Schedule"></div>
 
   <!-- App config (before scripts that read it) -->
   <script>
+    window.IS_ADMIN = <?= $isAdmin ? 'true' : 'false' ?>;
     window.SCH_CFG = {
       API: {
         fetchDay:        './api/jobs_fetch.php',
@@ -58,11 +67,15 @@ include '/home/freeman/job_scheduler.php';
   <!-- Modules (order matters) -->
   <script src="./assets/js/core.js"></script>           <!-- builds scheduler, loadDay, exposes window.sch -->
   <script src="./assets/js/apptemplate.js"></script>    <!-- 2-line appointment template -->
+  <?php if ($isAdmin): ?>
   <script src="./assets/js/dnd.js"></script>            <!-- drag/resize toggle & guards -->
   <script src="./assets/js/persist-moves.js"></script>  <!-- dragStop/resizeStop -> POST to server -->
+  <?php endif; ?>
   <script src="./assets/js/quickinfo.js"></script>      <!-- centered quick info dialog -->
+  <?php if ($isAdmin): ?>
   <script src="./assets/js/quickadd.js"></script>       <!-- add job (multi-day) -->
   <script src="./assets/js/editjob.js"></script>        <!-- edit job (multi-day) -->
+  <?php endif; ?>
 
 </body>
 </html>
