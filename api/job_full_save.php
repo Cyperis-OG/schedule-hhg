@@ -167,7 +167,7 @@ try {
                 contractor_id, location,
                 tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, electricians,
                 day_notes, status, created_at
-              ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
+              ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
         $typesIns = 'sssssis' . str_repeat('i', 9) . 'ss';
 
         $sqlUpd = "UPDATE job_days SET
