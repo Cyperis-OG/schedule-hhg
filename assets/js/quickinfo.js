@@ -7,6 +7,7 @@
 
   const CFG = window.SCH_CFG || {};
   const API = CFG.API || {};
+  const IS_ADMIN = Boolean(window.IS_ADMIN);
 
   const pad2 = (n) => (n < 10 ? "0" : "") + n;
   const fmtTimeRange = (start, end) => {
@@ -56,6 +57,13 @@
 
     const host = document.createElement('div');
     host.className = 'qi-card';
+
+    const adminBtns = IS_ADMIN ? `
+        <button class="qi-btn"        data-act="copy">Copy</button>
+        <button class="qi-btn"        data-act="edit">Edit/View Details</button>
+        <button class="qi-btn danger" data-act="delete">Delete</button>
+    ` : '';
+
     host.innerHTML = `
       <div class="qi-title">${esc(title)}</div>
       <div class="qi-sheet">
@@ -88,16 +96,15 @@
       </div>
 
       <div class="qi-footer">
-        <button class="qi-btn"        data-act="copy">Copy</button>
-        <button class="qi-btn"        data-act="edit">Edit/View Details</button>
-        <button class="qi-btn danger" data-act="delete">Delete</button>
+        ${adminBtns}
         <button class="qi-btn primary"data-act="close">Close</button>
       </div>
     `;
 
-    // Wire buttons (close, edit, delete, copy)
+    // Wire buttons (close always; others only for admin)
     host.querySelector('[data-act="close"]')?.addEventListener('click', () => closeInfo());
-    host.querySelector('[data-act="edit"]')?.addEventListener('click', () => {
+    if (IS_ADMIN) {
+      host.querySelector('[data-act="edit"]')?.addEventListener('click', () => {
       // Close first (this was causing your ReferenceError)
       closeInfo();
       // Then open the full editor if available
@@ -109,9 +116,10 @@
       } else {
         alert('Edit module is not loaded.');
       }
-    });
-    host.querySelector('[data-act="copy"]')?.addEventListener('click', () => handleCopy(ev));
-    host.querySelector('[data-act="delete"]')?.addEventListener('click', () => handleDelete(ev));
+      });
+      host.querySelector('[data-act="copy"]')?.addEventListener('click', () => handleCopy(ev));
+      host.querySelector('[data-act="delete"]')?.addEventListener('click', () => handleDelete(ev));
+    }
 
     return host;
   }
