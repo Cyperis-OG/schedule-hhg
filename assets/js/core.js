@@ -106,12 +106,15 @@ async function loadDay(dateStr) {
     const j = await r.json();
 
     const resources = (j.resources || []).map(x => ({ ...x, id: Number(x.id) }));
-    const events = (j.events || []).map(ev => ({
+    const rawEvents = (j.events || []).map(ev => ({
       ...ev,
       StartTime: parseDateMaybeSpace(ev.StartTime),
       EndTime:   parseDateMaybeSpace(ev.EndTime),
       ContractorId: ev.ContractorId == null ? null : Number(ev.ContractorId)
     }));
+    const resIds = new Set(resources.map(r => Number(r.id)));
+    const events = rawEvents.filter(e => e.ContractorId == null || resIds.has(Number(e.ContractorId)));
+    const orphans = rawEvents.filter(e => e.ContractorId != null && !resIds.has(Number(e.ContractorId)));
 
     // --- safe bind order ---
     // 0) clear events
@@ -134,8 +137,6 @@ async function loadDay(dateStr) {
     if (sch.refreshEvents) sch.refreshEvents();
 
     // helpful debug: log any events whose ContractorId isn't in resources
-    const resIds = new Set(resources.map(r => Number(r.id)));
-    const orphans = events.filter(e => e.ContractorId != null && !resIds.has(Number(e.ContractorId)));
     if (orphans.length) {
       console.warn('[loadDay] events with unknown ContractorId:', orphans.map(o => ({Id:o.Id, ContractorId:o.ContractorId})));
     }
