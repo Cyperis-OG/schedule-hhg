@@ -1,0 +1,1 @@
+ALTER TABLE contractors ADD COLUMN email_notify TEXT NULL AFTER color_hex;
