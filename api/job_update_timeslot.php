@@ -2,6 +2,8 @@
 // api/job_update_timeslot.php
 include '/home/freeman/job_scheduler.php';
 header('Content-Type: application/json');
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+if (($_SESSION['role'] ?? '') !== 'admin') { echo json_encode(['error'=>'forbidden']); exit; }
 
 $payload = json_decode(file_get_contents('php://input'), true);
 $uid  = $payload['job_day_uid'] ?? '';
