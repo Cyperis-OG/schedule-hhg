@@ -4,7 +4,18 @@
  * Schedule NG — modular build (core + DnD + QuickAdd + QuickInfo)
  */
 include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/lib/magic_link.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+
+$initDate = $_GET['date'] ?? date('Y-m-d');
+if (isset($_GET['ctr'], $_GET['tok'])) {
+  $cid = (int)$_GET['ctr'];
+  if (magic_link_verify($cid, $initDate, $_GET['tok'])) {
+    $_SESSION['role'] = 'contractor';
+    $_SESSION['contractor_id'] = $cid;
+  }
+}
+
 $isAdmin = (($_SESSION['role'] ?? '') === 'admin');
 ?>
 <!doctype html>
@@ -52,7 +63,8 @@ $isAdmin = (($_SESSION['role'] ?? '') === 'admin');
         deleteJob:       './api/job_delete.php'      // delete a single day or whole job
       },
       DEFAULT_TZ: 'America/Chicago',
-      MAX_DAYS: 5
+      MAX_DAYS: 5,
+      INIT_DATE: '<?= $initDate ?>'
     };
 
     if (window.ej?.schedule?.Schedule?.Inject) {
