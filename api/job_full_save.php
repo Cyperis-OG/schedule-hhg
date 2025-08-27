@@ -5,6 +5,12 @@
 header('Content-Type: application/json');
 
 require_once '/home/freeman/job_scheduler.php';  // absolute path used elsewhere
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+if (($_SESSION['role'] ?? '') !== 'admin') {
+    http_response_code(403);
+    echo json_encode(['ok' => false, 'error' => 'forbidden']);
+    exit;
+}
 
 // Simple debug helper to trace execution. Logs messages to PHP's error log
 // with a recognizable prefix so we can follow the flow in production.
