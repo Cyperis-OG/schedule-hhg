@@ -68,3 +68,5 @@ foreach ($targets as $day) {
         @mail($to, "Schedule for {$day}: {$contractor}", $body); // swap with PHPMailer in production
     }
 }
+
+echo "Sent.";
