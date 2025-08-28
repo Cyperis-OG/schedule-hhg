@@ -169,6 +169,11 @@ function listAttachments(string $uid): string {
             border-bottom-left-radius: 0.25rem;
             border-bottom-right-radius: 0.25rem;
         }
+        .job-spacer td {
+            border: none;
+            padding: 0;
+            height: 10px;
+        }
     </style>
 </head>
 <body class="container mt-5">
@@ -205,7 +210,7 @@ function listAttachments(string $uid): string {
             </tr>
         </thead>
         <tbody>
-        <?php $i = 0; foreach ($jobs as $job):
+        <?php $total = count($jobs); $i = 0; foreach ($jobs as $job):
             $start = date('g:i A', strtotime($job['start_time']));
             $end   = date('g:i A', strtotime($job['end_time']));
             $vehicles = formatVehicles($job);
@@ -242,6 +247,15 @@ function listAttachments(string $uid): string {
                     <td colspan="8"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
                 <?php endif; ?>
             </tr>
+            <?php if ($i < $total): ?>
+            <tr class="job-spacer">
+                <?php if ($cid === 'master'): ?>
+                    <td colspan="9"></td>
+                <?php else: ?>
+                    <td colspan="8"></td>
+                <?php endif; ?>
+            </tr>
+            <?php endif; ?>
         <?php endforeach; ?>
         </tbody>
     </table>
