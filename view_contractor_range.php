@@ -142,7 +142,7 @@ function listAttachments(string $uid): string {
         table { font-size: 0.9rem; }
         .job-table {
             border-collapse: separate;
-            border-spacing: 0 0.5rem;
+            border-spacing: 0;
         }
         .job-block td {
             border-left: 1px solid #dee2e6;
@@ -162,6 +162,9 @@ function listAttachments(string $uid): string {
             border-bottom: 1px solid #dee2e6;
             border-bottom-left-radius: 0.25rem;
             border-bottom-right-radius: 0.25rem;
+        }
+        .row-alt {
+            background-color: #e9ecef;
         }
     </style>
 </head>
@@ -210,7 +213,7 @@ function listAttachments(string $uid): string {
             $labor    = formatLabor($job);
             $notes = nl2br(htmlspecialchars($job['day_notes'] ?? ''));
             $attach = listAttachments($job['uid']);
-            $rowClass = ($i % 2 === 0) ? 'bg-light' : '';
+            $rowClass = ($i % 2 === 0) ? 'row-alt' : '';
             $i++;
             $dateDisp = date('m/d/Y', strtotime($job['work_date']));
         ?>
