@@ -103,17 +103,29 @@ function formatLabor(array $row): string {
     return $lines ? implode('<br>', $lines) : 'None';
 }
 
-function firstAttachment(string $uid): ?string {
-    foreach (['bol', 'extra'] as $bucket) {
-        $dir = __DIR__ . "/uploads/$uid/$bucket/";
-        if (is_dir($dir)) {
-            foreach (scandir($dir) as $fn) {
-                if ($fn === '.' || $fn === '..') continue;
-                return "./uploads/$uid/$bucket/" . rawurlencode($fn);
-            }
+function listAttachments(string $uid): string {
+    $links = [];
+
+    $bolDir = __DIR__ . "/uploads/$uid/bol/";
+    if (is_dir($bolDir)) {
+        foreach (scandir($bolDir) as $fn) {
+            if ($fn === '.' || $fn === '..') continue;
+            $links[] = "<a href='./uploads/$uid/bol/" . rawurlencode($fn) . "' target='_blank'>View BOL/CSO</a>";
+            break;
         }
     }
-    return null;
+
+    $extraDir = __DIR__ . "/uploads/$uid/extra/";
+    if (is_dir($extraDir)) {
+        $i = 1;
+        foreach (scandir($extraDir) as $fn) {
+            if ($fn === '.' || $fn === '..') continue;
+            $links[] = "<a href='./uploads/$uid/extra/" . rawurlencode($fn) . "' target='_blank'>Additional File $i</a>";
+            $i++;
+        }
+    }
+
+    return $links ? implode('<br>', $links) : 'None';
 }
 ?>
 <!DOCTYPE html>
@@ -122,7 +134,9 @@ function firstAttachment(string $uid): ?string {
     <meta charset="UTF-8">
     <title><?= $pageTitle ?></title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style> table { font-size: 0.9rem; } </style>
+    <style>
+        table { font-size: 0.9rem; }
+    </style>
 </head>
 <body class="container mt-5">
     <div class="d-flex align-items-center justify-content-between mb-3">
@@ -141,7 +155,7 @@ function firstAttachment(string $uid): ?string {
 <?php if (empty($jobs)): ?>
     <p>No jobs found <?= ($cid === 'master') ? 'for this date range.' : 'for this contractor in this date range.'; ?></p>
 <?php else: ?>
-    <table class="table table-striped">
+    <table class="table">
         <thead>
             <tr>
                 <?php if ($cid === 'master'): ?>
@@ -159,21 +173,18 @@ function firstAttachment(string $uid): ?string {
             </tr>
         </thead>
         <tbody>
-        <?php foreach ($jobs as $job):
+        <?php $i = 0; foreach ($jobs as $job):
             $start = date('g:i A', strtotime($job['start_time']));
             $end   = date('g:i A', strtotime($job['end_time']));
             $vehicles = formatVehicles($job);
             $labor    = formatLabor($job);
             $notes = nl2br(htmlspecialchars($job['day_notes'] ?? ''));
-            $attach = '';
-            if ($file = firstAttachment($job['uid'])) {
-                $attach = '<a href="' . $file . '" target="_blank">View File</a>';
-            } else {
-                $attach = 'None';
-            }
+            $attach = listAttachments($job['uid']);
+            $rowClass = ($i % 2 === 0) ? 'bg-light' : '';
+            $i++;
             $dateDisp = date('m/d/Y', strtotime($job['work_date']));
         ?>
-            <tr>
+            <tr class="<?= $rowClass ?>">
                 <?php if ($cid === 'master'): ?>
                     <td><?= htmlspecialchars($job['contractor_name']) ?></td>
                 <?php endif; ?>
@@ -187,7 +198,7 @@ function firstAttachment(string $uid): ?string {
                 <td><?= $labor ?></td>
                 <td><?= $attach ?></td>
             </tr>
-            <tr>
+            <tr class="<?= $rowClass ?>">
                 <?php if ($cid === 'master'): ?>
                     <td colspan="10"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
                 <?php else: ?>
