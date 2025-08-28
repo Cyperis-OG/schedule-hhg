@@ -140,7 +140,7 @@ function listAttachments(string $uid): string {
         }
     }
 
-    return $links ? implode('<br>', $links) : 'None';
+    return $links ? implode('<br>', $links) : 'No Files Uploaded';
 }
 ?>
 <!DOCTYPE html>
