@@ -45,7 +45,7 @@ if ($cid === 'master') {
 }
 
 if ($cid === 'master') {
-    $stmt = $mysqli->prepare("SELECT jd.uid, jd.start_time, jd.end_time, jd.location, jd.status AS day_status,
+    $stmt = $mysqli->prepare("SELECT jd.uid, jd.start_time, jd.end_time, jd.location,
                                        jd.tractors, jd.bobtails, jd.drivers, jd.movers, jd.installers, jd.pctechs,
                                        jd.supervisors, jd.project_managers, jd.crew_transport, jd.electricians,
                                        jd.day_notes, j.title AS customer_name, j.job_number, j.salesman,
@@ -57,7 +57,7 @@ if ($cid === 'master') {
                                 ORDER BY c.display_order, jd.start_time");
     $stmt->bind_param('s', $date);
 } else {
-    $stmt = $mysqli->prepare("SELECT jd.uid, jd.start_time, jd.end_time, jd.location, jd.status AS day_status,
+    $stmt = $mysqli->prepare("SELECT jd.uid, jd.start_time, jd.end_time, jd.location,
                                        jd.tractors, jd.bobtails, jd.drivers, jd.movers, jd.installers, jd.pctechs,
                                        jd.supervisors, jd.project_managers, jd.crew_transport, jd.electricians,
                                        jd.day_notes, j.title AS customer_name, j.job_number, j.salesman
@@ -72,24 +72,37 @@ $res  = $stmt->get_result();
 $jobs = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
+$formattedDate = date('l m/d/Y', strtotime($date));
 if ($cid === 'master') {
-    $pageTitle = "Master List of All Jobs for $date";
+    $pageTitle = "Master List of All Jobs for $formattedDate";
 } else {
-    $pageTitle = htmlspecialchars($contractorName) . "'s Schedule for " . htmlspecialchars($date);
+    $pageTitle = htmlspecialchars($contractorName) . "'s Schedule for " . $formattedDate;
 }
 
 function formatVehicles(array $row): string {
     $items = [
-        'TTrailers'       => $row['tractors']       ?? 0,
-        'Bobtails'        => $row['bobtails']       ?? 0,
-        'Super'           => $row['supervisors']    ?? 0,
-        'Drivers'         => $row['drivers']        ?? 0,
-        'Movers'          => $row['movers']         ?? 0,
-        'Installers'      => $row['installers']     ?? 0,
-        'PC Techs'        => $row['pctechs']        ?? 0,
-        'Proj Mgrs'       => $row['project_managers'] ?? 0,
-        'Crew Transport'  => $row['crew_transport'] ?? 0,
-        'Electricians'    => $row['electricians']   ?? 0,
+        'TTrailers'      => $row['tractors']      ?? 0,
+        'Bobtails'       => $row['bobtails']      ?? 0,
+        'Crew Transport' => $row['crew_transport'] ?? 0,
+    ];
+    $lines = [];
+    foreach ($items as $label => $count) {
+        if ((int)$count > 0) {
+            $lines[] = "$count $label";
+        }
+    }
+    return $lines ? implode('<br>', $lines) : 'None';
+}
+
+function formatLabor(array $row): string {
+    $items = [
+        'Super'        => $row['supervisors']     ?? 0,
+        'Drivers'      => $row['drivers']         ?? 0,
+        'Movers'       => $row['movers']          ?? 0,
+        'Installers'   => $row['installers']      ?? 0,
+        'PC Techs'     => $row['pctechs']         ?? 0,
+        'Proj Mgrs'    => $row['project_managers'] ?? 0,
+        'Electricians' => $row['electricians']    ?? 0,
     ];
     $lines = [];
     foreach ($items as $label => $count) {
@@ -144,14 +157,13 @@ function firstAttachment(string $uid): ?string {
                 <?php if ($cid === 'master'): ?>
                     <th>Contractor</th>
                 <?php endif; ?>
-                <th>Salesman</th>
+                <th>Time</th>
                 <th>Job Number</th>
                 <th>Customer</th>
+                <th>Salesman</th>
                 <th>Location</th>
-                <th>Time</th>
-                <th>Vehicles/Labor</th>
-                <th>Status</th>
-                <th>Notes</th>
+                <th>Vehicles</th>
+                <th>Labor</th>
                 <th>Attachment</th>
             </tr>
         </thead>
@@ -159,7 +171,8 @@ function firstAttachment(string $uid): ?string {
         <?php foreach ($jobs as $job):
             $start = date('g:i A', strtotime($job['start_time']));
             $end   = date('g:i A', strtotime($job['end_time']));
-            $vehiclesLabor = formatVehicles($job);
+            $vehicles = formatVehicles($job);
+            $labor    = formatLabor($job);
             $notes = nl2br(htmlspecialchars($job['day_notes'] ?? ''));
             $attach = '';
             if ($file = firstAttachment($job['uid'])) {
@@ -172,15 +185,21 @@ function firstAttachment(string $uid): ?string {
                 <?php if ($cid === 'master'): ?>
                     <td><?= htmlspecialchars($job['contractor_name']) ?></td>
                 <?php endif; ?>
-                <td><?= htmlspecialchars($job['salesman'] ?? 'N/A') ?></td>
+                <td><?= $start . ' - ' . $end ?></td>
                 <td><?= htmlspecialchars($job['job_number'] ?? 'N/A') ?></td>
                 <td><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
+                <td><?= htmlspecialchars($job['salesman'] ?? 'N/A') ?></td>
                 <td><?= htmlspecialchars($job['location'] ?? '') ?></td>
-                <td><?= $start . ' - ' . $end ?></td>
-                <td><?= $vehiclesLabor ?></td>
-                <td><?= htmlspecialchars($job['day_status'] ?? '') ?></td>
-                <td><?= $notes ?></td>
+                <td><?= $vehicles ?></td>
+                <td><?= $labor ?></td>
                 <td><?= $attach ?></td>
+            </tr>
+            <tr>
+                <?php if ($cid === 'master'): ?>
+                    <td colspan="9"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
+                <?php else: ?>
+                    <td colspan="8"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
+                <?php endif; ?>
             </tr>
         <?php endforeach; ?>
         </tbody>
