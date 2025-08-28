@@ -22,6 +22,7 @@ if ($res) {
   <ul>
     <li><a href="add_job.php">Add Job</a></li>
     <li><a href="contractors.php">Contractors</a></li>
+    <li><a href="job_fields.php">Job Fields</a></li>
     <li><a href="#" id="openDaily">View Daily Schedule</a></li>
     <li><a href="#" id="openRange">View Schedule Range</a></li>
   </ul>
