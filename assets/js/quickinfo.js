@@ -9,6 +9,32 @@
   const API = CFG.API || {};
   const IS_ADMIN = Boolean(window.IS_ADMIN);
 
+  const DEFAULT_FIELDS = [
+    { key: 'tractors',         label: 'TTrailers' },
+    { key: 'bobtails',         label: 'Bobtails' },
+    { key: 'movers',           label: 'Movers' },
+    { key: 'drivers',          label: 'Drivers' },
+    { key: 'installers',       label: 'Installers' },
+    { key: 'pctechs',          label: 'PC Techs' },
+    { key: 'supervisors',      label: 'Supervisors' },
+    { key: 'project_managers', label: 'Project Managers' },
+    { key: 'crew_transport',   label: 'Crew Transport' },
+    { key: 'electricians',     label: 'Electricians' }
+  ];
+  const DAY_FIELDS = (CFG.DAY_FIELDS || DEFAULT_FIELDS).filter(f => f.enabled !== false);
+  const LEGACY_MAP = {
+    tractors: 'NumTractorTrailers',
+    bobtails: 'NumBobtails',
+    movers: 'NumMovers',
+    drivers: 'NumDrivers',
+    installers: 'NumInstallers',
+    pctechs: 'NumPCTechs',
+    supervisors: 'NumSupervisors',
+    project_managers: 'NumProjectManagers',
+    crew_transport: 'NumCrewTransport',
+    electricians: 'NumElectricians'
+  };
+
   const pad2 = (n) => (n < 10 ? "0" : "") + n;
   const fmtTimeRange = (start, end) => {
     try {
@@ -42,18 +68,11 @@
     const status= ev.Status || 'scheduled';
     const contractor = contractorNameById(ev.ContractorId);
 
-    // vehicles & labor (show zeros)
-    const tractors = Number(ev.tractors ?? ev.NumTractorTrailers ?? 0);
-    const bobtails = Number(ev.bobtails ?? ev.NumBobtails ?? 0);
-
-    const drivers  = Number(ev.drivers  ?? ev.NumDrivers ?? 0);
-    const movers   = Number(ev.movers   ?? ev.NumMovers ?? 0);
-    const installers = Number(ev.installers ?? ev.NumInstallers ?? 0);
-    const pctechs    = Number(ev.pctechs    ?? ev.NumPCTechs ?? 0);
-    const supervisors= Number(ev.supervisors?? ev.NumSupervisors ?? 0);
-    const projectManagers = Number(ev.project_managers ?? ev.NumProjectManagers ?? 0);
-    const crewTransport   = Number(ev.crew_transport   ?? ev.NumCrewTransport   ?? 0);
-    const electricians    = Number(ev.electricians     ?? ev.NumElectricians    ?? 0);
+    const countsText = DAY_FIELDS.map(f => {
+      const legacy = LEGACY_MAP[f.key];
+      const val = Number(ev[f.key] ?? (legacy ? ev[legacy] : 0) ?? 0);
+      return `${val} - ${f.label}`;
+    }).join('\\n');
 
     const host = document.createElement('div');
     host.className = 'qi-card';
@@ -76,14 +95,8 @@
         <div class="qi-row"><div class="qi-label">Contractor:</div>
           <div class="qi-value">${esc(contractor)}</div></div>
 
-        <div class="qi-row"><div class="qi-label">Vehicles:</div>
-          <div class="qi-value">${esc(`${tractors} - TTrailers\n${bobtails} - Bobtails`)}</div></div>
-
-        <div class="qi-row"><div class="qi-label">Labor:</div>
-          <div class="qi-value">${esc(
-            `${drivers} - Drivers\n${movers} - Movers\n${installers} - Installers\n${pctechs} - PC Techs\n` +
-            `${supervisors} - Supervisors\n${projectManagers} - Project Managers\n${crewTransport} - Crew Transport\n${electricians} - Electricians`
-          )}</div></div>
+        <div class="qi-row"><div class="qi-label">Resources:</div>
+          <div class="qi-value">${esc(countsText)}</div></div>
 
         <div class="qi-row"><div class="qi-label">Status:</div>
           <div class="qi-value">${esc(status)}</div></div>
@@ -173,27 +186,21 @@
         salesman: ev.salesman || ev.Salesman || null,
         status: ev.Status || 'scheduled'
       };
-      const day = {
-        work_date: date,
-        start_time: `${startS}:00`,
-        end_time: `${endS}:00`,
-        contractor_id: ev.ContractorId ?? null,
-        location: ev.Location || null,
-        tractors: Number(ev.tractors ?? 0),
-        bobtails: Number(ev.bobtails ?? 0),
-        drivers: Number(ev.drivers ?? 0),
-        movers: Number(ev.movers ?? 0),
-        installers: Number(ev.installers ?? 0),
-        pctechs: Number(ev.pctechs ?? 0),
-        supervisors: Number(ev.supervisors ?? 0),
-        project_managers: Number(ev.project_managers ?? 0),
-        crew_transport: Number(ev.crew_transport ?? 0),
-        electricians: Number(ev.electricians ?? 0),
-        day_notes: ev.day_notes || null,
-        status: job.status,
-        meta: {}
-      };
-      try {
+        const day = {
+          work_date: date,
+          start_time: `${startS}:00`,
+          end_time: `${endS}:00`,
+          contractor_id: ev.ContractorId ?? null,
+          location: ev.Location || null,
+          day_notes: ev.day_notes || null,
+          status: job.status,
+          meta: {},
+        };
+        DAY_FIELDS.forEach(f => {
+          const legacy = LEGACY_MAP[f.key];
+          day[f.key] = Number(ev[f.key] ?? (legacy ? ev[legacy] : 0) ?? 0);
+        });
+        try {
         const res = await fetch(API.saveJob, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
