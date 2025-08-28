@@ -146,6 +146,29 @@ function listAttachments(string $uid): string {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         table { font-size: 0.9rem; }
+        .job-table {
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+        }
+        .job-block td {
+            border-left: 1px solid #dee2e6;
+            border-right: 1px solid #dee2e6;
+            border-top: none;
+            border-bottom: none;
+        }
+        .job-title td {
+            border-top: 1px solid #dee2e6;
+            border-top-left-radius: 0.25rem;
+            border-top-right-radius: 0.25rem;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .job-notes td {
+            border-bottom: 1px solid #dee2e6;
+            border-bottom-left-radius: 0.25rem;
+            border-bottom-right-radius: 0.25rem;
+        }
     </style>
 </head>
 <body class="container mt-5">
@@ -165,7 +188,7 @@ function listAttachments(string $uid): string {
 <?php if (empty($jobs)): ?>
     <p>No jobs found <?= ($cid === 'master') ? 'for this date.' : 'for this contractor on this date.'; ?></p>
 <?php else: ?>
-    <table class="table">
+    <table class="table job-table">
         <thead>
             <tr>
                 <?php if ($cid === 'master'): ?>
@@ -192,7 +215,14 @@ function listAttachments(string $uid): string {
             $rowClass = ($i % 2 === 0) ? 'bg-light' : '';
             $i++;
         ?>
-            <tr class="<?= $rowClass ?>">
+            <tr class="job-title job-block <?= $rowClass ?>">
+                <?php if ($cid === 'master'): ?>
+                    <td colspan="9"><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
+                <?php else: ?>
+                    <td colspan="8"><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
+                <?php endif; ?>
+            </tr>
+            <tr class="job-block <?= $rowClass ?>">
                 <?php if ($cid === 'master'): ?>
                     <td><?= htmlspecialchars($job['contractor_name']) ?></td>
                 <?php endif; ?>
@@ -205,7 +235,7 @@ function listAttachments(string $uid): string {
                 <td><?= $labor ?></td>
                 <td><?= $attach ?></td>
             </tr>
-            <tr class="<?= $rowClass ?>">
+            <tr class="job-notes job-block <?= $rowClass ?>">
                 <?php if ($cid === 'master'): ?>
                     <td colspan="9"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
                 <?php else: ?>
