@@ -211,6 +211,13 @@ function listAttachments(string $uid): string {
             </tr>
         </thead>
         <tbody>
+            <tr class="job-spacer">
+                <?php if ($cid === 'master'): ?>
+                    <td colspan="10"></td>
+                <?php else: ?>
+                    <td colspan="9"></td>
+                <?php endif; ?>
+            </tr>
         <?php $total = count($jobs); $i = 0; foreach ($jobs as $job):
             $start = date('g:i A', strtotime($job['start_time']));
             $end   = date('g:i A', strtotime($job['end_time']));
