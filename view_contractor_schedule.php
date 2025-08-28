@@ -148,7 +148,7 @@ function listAttachments(string $uid): string {
         table { font-size: 0.9rem; }
         .job-table {
             border-collapse: separate;
-            border-spacing: 0 0.5rem;
+            border-spacing: 0;
         }
         .job-block td {
             border-left: 1px solid #dee2e6;
