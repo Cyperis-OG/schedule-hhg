@@ -20,6 +20,10 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
 // Load the template JSON
 $templatePath = __DIR__ . '/../config/job_form_template.json';
 $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : '{}';
+
+// Load dynamic per-day field configuration
+$fieldsPath = __DIR__ . '/../config/day_fields.json';
+$dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]';
 ?>
 <!doctype html>
 <html lang="en">
@@ -125,6 +129,20 @@ $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : 
   <script>
     // ---------------- Template / Config ----------------
     const TEMPLATE = <?php echo $templateJson ?: '{}'; ?>;
+    const DAY_FIELDS = <?php echo $dayFieldsJson ?: '[]'; ?>;
+    // merge configurable day fields into template
+    (function(){
+      const sec = TEMPLATE.sections?.find(s => s.id === 'day_core');
+      if (!sec) return;
+      const dayNotes = sec.fields?.find(f => f.key === 'day_notes');
+      sec.fields = (sec.fields || []).filter(f => f.key !== 'day_notes');
+      DAY_FIELDS.forEach(df => {
+        const f = { key: df.key, label: df.label, type: 'number', default: 0, quick: true };
+        if (df.enabled === false) f.enabled = false;
+        sec.fields.push(f);
+      });
+      if (dayNotes) sec.fields.push(dayNotes);
+    })();
     document.getElementById('maxDaysLabel').textContent = TEMPLATE.maxDays || 5;
 
     const API = {
@@ -177,7 +195,7 @@ $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : 
         host.appendChild(card);
 
         const grid = card.querySelector('.grid');
-        for (const f of (sec.fields || [])) {
+        for (const f of (sec.fields || []).filter(f => f.enabled !== false)) {
           grid.appendChild(renderField(f, `job.${f.key}`, sec.level));
         }
       }
@@ -303,8 +321,8 @@ $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : 
       const coreWrap = dayCard.querySelector('[data-kind="core"]');
       const metaWrap = dayCard.querySelector('[data-kind="meta"]');
 
-      (dayCore?.fields || []).forEach(f => coreWrap.appendChild(renderField(f, `day.${idx}.${f.key}`, 'day')));
-      (dayMeta?.fields || []).forEach(f => metaWrap.appendChild(renderField(f, `day.${idx}.meta.${f.key}`, 'day_meta')));
+      (dayCore?.fields || []).filter(f => f.enabled !== false).forEach(f => coreWrap.appendChild(renderField(f, `day.${idx}.${f.key}`, 'day')));
+      (dayMeta?.fields || []).filter(f => f.enabled !== false).forEach(f => metaWrap.appendChild(renderField(f, `day.${idx}.meta.${f.key}`, 'day_meta')));
 
       // Write initial values if provided
       for (const [k,v] of Object.entries(initial)) {
@@ -358,11 +376,11 @@ $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : 
     function collectJob(){
       const job = {};
       const meta = {};
-      (TEMPLATE.sections.find(s => s.id === 'job_core')?.fields || []).forEach(f => {
+      (TEMPLATE.sections.find(s => s.id === 'job_core')?.fields || []).filter(f => f.enabled !== false).forEach(f => {
         const el = document.querySelector(`[name="job.${f.key}"]`);
         if (el) job[f.key] = el.value.trim();
       });
-      (TEMPLATE.sections.find(s => s.id === 'job_meta')?.fields || []).forEach(f => {
+      (TEMPLATE.sections.find(s => s.id === 'job_meta')?.fields || []).filter(f => f.enabled !== false).forEach(f => {
         const el = document.querySelector(`[name="job.${f.key}"]`) || document.querySelector(`[name="job_meta.${f.key}"]`);
         const val = el ? el.value.trim() : '';
         if (val !== '') meta[f.key] = val;
@@ -378,26 +396,20 @@ $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : 
     function collectDay(idx){
       const day = {};
       const base = (k) => document.querySelector(`[name="day.${idx}.${k}"]`);
-      const getNum = (k) => Number(base(k)?.value || 0);
-
-      day.work_date   = base('work_date')?.value || '';
-      day.start_time  = (base('start_time')?.value || '') + ':00';
-      day.end_time    = (base('end_time')?.value || '') + ':00';
-      day.location    = base('location')?.value || '';
-      day.contractor_id = Number(base('contractor_id')?.value || 0) || null;
-
-      day.tractors    = getNum('tractors');
-      day.bobtails    = getNum('bobtails');
-      day.movers      = getNum('movers');
-      day.drivers     = getNum('drivers');
-      day.installers  = getNum('installers');
-      day.supervisors = getNum('supervisors');
-      day.pctechs     = getNum('pctechs');
-      day.day_notes   = base('day_notes')?.value || '';
-      day.status      = document.querySelector('[name="job.status"]')?.value || 'scheduled';
+      const sec = TEMPLATE.sections.find(s => s.id === 'day_core');
+      (sec?.fields || []).filter(f => f.enabled !== false).forEach(f => {
+        const el = base(f.key);
+        if (!el) return;
+        let val = el.value || '';
+        if (f.type === 'number') val = Number(val || 0);
+        else if (f.type === 'contractor') val = Number(val || 0) || null;
+        else if (f.type === 'time') val = (val || '') + ':00';
+        day[f.key] = val;
+      });
+      day.status = document.querySelector('[name="job.status"]')?.value || 'scheduled';
 
       const meta = {};
-      (TEMPLATE.sections.find(s => s.id === 'day_meta')?.fields || []).forEach(f => {
+      (TEMPLATE.sections.find(s => s.id === 'day_meta')?.fields || []).filter(f => f.enabled !== false).forEach(f => {
         const el = document.querySelector(`[name="day.${idx}.meta.${f.key}"]`);
         const v = el ? el.value.trim() : '';
         if (v !== '') meta[f.key] = v;
