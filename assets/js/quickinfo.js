@@ -72,7 +72,7 @@
       const legacy = LEGACY_MAP[f.key];
       const val = Number(ev[f.key] ?? (legacy ? ev[legacy] : 0) ?? 0);
       return `${val} - ${f.label}`;
-    }).join('\\n');
+    }).join('\n');
 
     const host = document.createElement('div');
     host.className = 'qi-card';
