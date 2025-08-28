@@ -2,6 +2,24 @@
 include '/home/freeman/job_scheduler.php';
 require_once __DIR__ . '/../lib/magic_link.php';
 
+// Additional addresses that should always be CC'd.
+// Populate this array with strings like 'person@example.com'.
+$extraCc = [];
+
+// Load active admin users to CC on every mail.
+$adminCc = [];
+$res = $mysqli->query("SELECT email FROM users WHERE role='admin' AND status='active'");
+if ($res) {
+    while ($row = $res->fetch_assoc()) {
+        $email = trim($row['email'] ?? '');
+        if ($email !== '') {
+            $adminCc[] = $email;
+        }
+    }
+    $res->close();
+}
+$ccList = array_merge($adminCc, $extraCc);
+
 // Determine which date(s) to send based on the day of week.
 // 1=Mon ... 7=Sun
 $today   = new DateTimeImmutable('today');
@@ -51,10 +69,18 @@ foreach ($targets as $day) {
 
     // Compose and send mails (PHPMailer preferred).
     foreach ($by as $cid => $info) {
-        $to = $info['email'] ?: 'dispatch@example.com';
+        $emails = preg_split('/[\s,;]+/', $info['email'] ?? '', -1, PREG_SPLIT_NO_EMPTY);
+        if (!$emails) {
+            $emails = ['dispatch@example.com'];
+        }
+        $to = implode(',', $emails);
         $contractor = $info['name'];
 
-        $body = "Schedule for {$day} — {$contractor}\n\n";
+        $dt = new DateTimeImmutable($day);
+        $prettyDay = $dt->format('l m/d/Y');
+        $subject   = sprintf('Job Schedule for %s on %s', $contractor, $prettyDay);
+
+        $body = "Schedule for {$prettyDay} — {$contractor}\n\n";
         foreach ($info['rows'] as $x) {
             $body .= sprintf("%s (%s)  %s-%s\n",
                 $x['title'], $x['job_number'], substr($x['start_time'],0,5), substr($x['end_time'],0,5));
@@ -65,7 +91,14 @@ foreach ($targets as $day) {
             $cid, $day, $token);
         $body .= "\nView schedule: {$link}\n";
 
-        @mail($to, "Schedule for {$day}: {$contractor}", $body); // swap with PHPMailer in production
+        $headers = [];
+        if ($ccList) {
+            $headers[] = 'Cc: ' . implode(',', $ccList);
+        }
+        $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+        $headersStr = implode("\r\n", $headers);
+
+        @mail($to, $subject, $body, $headersStr); // swap with PHPMailer in production
     }
 }
 
