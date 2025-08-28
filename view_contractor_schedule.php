@@ -74,9 +74,14 @@ $stmt->close();
 
 $formattedDate = date('l m/d/Y', strtotime($date));
 if ($cid === 'master') {
-    $pageTitle = "Master List of All Jobs for $formattedDate";
+    $pageTitle  = "Master List of All Jobs for $formattedDate";
+    $titleLine1 = 'Master Schedule';
+    $titleLine2 = $formattedDate;
 } else {
-    $pageTitle = htmlspecialchars($contractorName) . "'s Schedule for " . $formattedDate;
+    $safeName   = htmlspecialchars($contractorName);
+    $pageTitle  = $safeName . "'s Schedule for " . $formattedDate;
+    $titleLine1 = $safeName . "'s Schedule";
+    $titleLine2 = $formattedDate;
 }
 
 function formatVehicles(array $row): string {
@@ -177,8 +182,11 @@ function listAttachments(string $uid): string {
     </style>
 </head>
 <body class="container mt-5">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h1 class="mb-0"><?= $pageTitle ?></h1>
+    <div class="d-flex align-items-start justify-content-between mb-3">
+        <div>
+            <h1 class="mb-0"><?= $titleLine1 ?></h1>
+            <h4 class="mb-0"><?= $titleLine2 ?></h4>
+        </div>
         <div class="d-flex align-items-center">
             <span class="mr-2">Print Jobs</span>
             <button onclick="window.print()" class="btn btn-light" title="Print this page">
@@ -210,6 +218,13 @@ function listAttachments(string $uid): string {
             </tr>
         </thead>
         <tbody>
+            <tr class="job-spacer">
+                <?php if ($cid === 'master'): ?>
+                    <td colspan="9"></td>
+                <?php else: ?>
+                    <td colspan="8"></td>
+                <?php endif; ?>
+            </tr>
         <?php $total = count($jobs); $i = 0; foreach ($jobs as $job):
             $start = date('g:i A', strtotime($job['start_time']));
             $end   = date('g:i A', strtotime($job['end_time']));
