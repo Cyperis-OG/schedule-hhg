@@ -1,12 +1,52 @@
 [
-  {"key": "tractors", "label": "TTrailers", "enabled": true},
-  {"key": "bobtails", "label": "Bobtails", "enabled": true},
-  {"key": "movers", "label": "Movers", "enabled": true},
-  {"key": "drivers", "label": "Drivers", "enabled": true},
-  {"key": "installers", "label": "Installers", "enabled": true},
-  {"key": "pctechs", "label": "PC Techs", "enabled": true},
-  {"key": "supervisors", "label": "Supervisors", "enabled": true},
-  {"key": "project_managers", "label": "Project Managers", "enabled": true},
-  {"key": "crew_transport", "label": "Crew Transport", "enabled": true},
-  {"key": "electricians", "label": "Electricians", "enabled": true}
+    {
+        "key": "tractors",
+        "label": "TTrailers",
+        "enabled": false
+    },
+    {
+        "key": "bobtails",
+        "label": "Bobtails",
+        "enabled": true
+    },
+    {
+        "key": "movers",
+        "label": "Movers",
+        "enabled": true
+    },
+    {
+        "key": "drivers",
+        "label": "Drivers",
+        "enabled": true
+    },
+    {
+        "key": "installers",
+        "label": "Installers",
+        "enabled": false
+    },
+    {
+        "key": "pctechs",
+        "label": "PC Techs",
+        "enabled": false
+    },
+    {
+        "key": "supervisors",
+        "label": "Supervisors",
+        "enabled": false
+    },
+    {
+        "key": "project_managers",
+        "label": "Project Managers",
+        "enabled": false
+    },
+    {
+        "key": "crew_transport",
+        "label": "Crew Transport",
+        "enabled": false
+    },
+    {
+        "key": "electricians",
+        "label": "Electricians",
+        "enabled": true
+    }
 ]
