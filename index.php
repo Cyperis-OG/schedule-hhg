@@ -17,6 +17,8 @@ if (isset($_GET['ctr'], $_GET['tok'])) {
 }
 
 $isAdmin = (($_SESSION['role'] ?? '') === 'admin');
+$dayFieldsJson = file_get_contents(__DIR__ . '/config/day_fields.json');
+if ($dayFieldsJson === false) $dayFieldsJson = '[]';
 ?>
 <!doctype html>
 <html lang="en">
@@ -64,7 +66,8 @@ $isAdmin = (($_SESSION['role'] ?? '') === 'admin');
       },
       DEFAULT_TZ: 'America/Chicago',
       MAX_DAYS: 5,
-      INIT_DATE: '<?= $initDate ?>'
+      INIT_DATE: '<?= $initDate ?>',
+      DAY_FIELDS: <?= $dayFieldsJson ?>
     };
 
     if (window.ej?.schedule?.Schedule?.Inject) {
