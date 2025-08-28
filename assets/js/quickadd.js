@@ -12,6 +12,21 @@
   const pad2  = (n) => (n < 10 ? '0' : '') + n;
   const toYMD = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
+  const DEFAULT_FIELDS = [
+    { key: 'tractors',         label: 'TTrailers' },
+    { key: 'bobtails',         label: 'Bobtails' },
+    { key: 'movers',           label: 'Movers' },
+    { key: 'drivers',          label: 'Drivers' },
+    { key: 'installers',       label: 'Installers' },
+    { key: 'pctechs',          label: 'PC Techs' },
+    { key: 'supervisors',      label: 'Supervisors' },
+    { key: 'project_managers', label: 'Project Managers' },
+    { key: 'crew_transport',   label: 'Crew Transport' },
+    { key: 'electricians',     label: 'Electricians' }
+  ];
+  const DAY_FIELDS = (window.SCH_CFG?.DAY_FIELDS || DEFAULT_FIELDS).filter(f => f.enabled !== false);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
   const addHoursClamp = (hhmm, add) => {
     const [h, m] = hhmm.split(':').map(Number);
     let eh = h + add, em = m;
@@ -157,20 +172,9 @@
           </div>
 
           <div class="counts">
-            ${[
-              ['tractors','TTrailers'],
-              ['bobtails','Bobtails'],
-              ['movers','Movers'],
-              ['drivers','Drivers'],
-              ['installers','Installers'],
-              ['pctechs','PC Techs'],
-              ['supervisors','Supervisors'],
-              ['project_managers','Project Managers'],
-              ['crew_transport','Crew Transport'],
-              ['electricians','Electricians']
-            ].map(([key,label])=>`
-              <div class="qa-row"><label>${label}</label>
-                <input name="day.${index}.${key}" type="number" min="0" step="1" value="${initial?.[key] ?? 0}" />
+            ${DAY_FIELDS.map(f=>`
+              <div class="qa-row"><label>${esc(f.label)}</label>
+                <input name="day.${index}.${f.key}" type="number" min="0" step="1" value="${Number(initial?.[f.key] ?? 0)}" />
               </div>`).join('')}
           </div>
 
@@ -252,16 +256,14 @@
       const card=daysWrap.children[idx]; if(!card) return;
       const g=(n)=>card.querySelector(`[name="day.${idx}.${n}"]`)?.value ?? '';
       const d=new Date(g('date')||dateYMD); d.setDate(d.getDate()+1);
+      const counts={};
+      DAY_FIELDS.forEach(f=>{ counts[f.key]=g(f.key); });
       addDay({
         date: toYMD(d),
         start24: tripleTo24h(g('start_h'), g('start_m'), g('start_ap')),
         end24:   tripleTo24h(g('end_h'),   g('end_m'),   g('end_ap')),
         location: g('location'),
-        tractors: g('tractors'), bobtails: g('bobtails'),
-        movers: g('movers'), drivers: g('drivers'),
-        installers: g('installers'), pctechs: g('pctechs'),
-        supervisors: g('supervisors'), project_managers: g('project_managers'),
-        crew_transport: g('crew_transport'), electricians: g('electricians'),
+        ...counts,
         notes: card.querySelector(`[name="day.${idx}.notes"]`)?.value ?? ''
       });
     }
@@ -287,10 +289,10 @@
         startS=tripleTo24h(g('start_h'), g('start_m'), g('start_ap'));
         endS=tripleTo24h(g('end_h'),   g('end_m'),   g('end_ap'));
       }
+      const defaults={}; DAY_FIELDS.forEach(f=>defaults[f.key]=0);
       addDay({
         date: nextDate, start24: startS, end24: endS,
-        location: '', tractors:0, bobtails:0, movers:0, drivers:0, installers:0,
-        pctechs:0, supervisors:0, project_managers:0, crew_transport:0, electricians:0, notes:''
+        location: '', ...defaults, notes:''
       });
     });
 
@@ -349,23 +351,18 @@
         const start24h=tripleTo24h(g('start_h'), g('start_m'), g('start_ap'));
         const end24h  =tripleTo24h(g('end_h'),   g('end_m'),   g('end_ap'));
 
-        days.push({
+        const dayObj={
           work_date:g('date'),
           start_time:`${start24h}:00`,
           end_time:`${end24h}:00`,
           contractor_id: contractorIdAll,
           location:(g('location')||'').trim() || null,
-          tractors:+(g('tractors')||0), bobtails:+(g('bobtails')||0),
-          movers:+(g('movers')||0), drivers:+(g('drivers')||0),
-          installers:+(g('installers')||0), pctechs:+(g('pctechs')||0),
-          supervisors:+(g('supervisors')||0),
-          project_managers:+(g('project_managers')||0),
-          crew_transport:+(g('crew_transport')||0),
-          electricians:+(g('electricians')||0),
           day_notes:(card.querySelector(`[name="day.${idx}.notes"]`)?.value||'').trim() || null,
           status: job.status,
-          meta:{}
-        });
+          meta:{},
+        };
+        DAY_FIELDS.forEach(f=>{ dayObj[f.key]=+(g(f.key)||0); });
+        days.push(dayObj);
         const bol=card.querySelector(`[name="day.${idx}.bol_files"]`)?.files;
         const ext=card.querySelector(`[name="day.${idx}.extra_files"]`)?.files;
         filesMap.push({ idx, bolFiles:bol, extraFiles:ext });
