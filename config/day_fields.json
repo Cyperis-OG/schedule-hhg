@@ -22,22 +22,22 @@
     {
         "key": "installers",
         "label": "Installers",
-        "enabled": false
+        "enabled": true
     },
     {
         "key": "pctechs",
         "label": "PC Techs",
-        "enabled": false
+        "enabled": true
     },
     {
         "key": "supervisors",
         "label": "Supervisors",
-        "enabled": false
+        "enabled": true
     },
     {
         "key": "project_managers",
         "label": "Project Managers",
-        "enabled": false
+        "enabled": true
     },
     {
         "key": "crew_transport",
@@ -47,6 +47,6 @@
     {
         "key": "electricians",
         "label": "Electricians",
-        "enabled": false
+        "enabled": true
     }
 ]
