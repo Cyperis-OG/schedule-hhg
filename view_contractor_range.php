@@ -27,7 +27,9 @@ $contractorName = '';
 $formattedStart = date('l m/d/Y', strtotime($start_date));
 $formattedEnd   = date('l m/d/Y', strtotime($end_date));
 if ($cid === 'master') {
-    $pageTitle = "Master List of All Jobs from $formattedStart to $formattedEnd";
+    $pageTitle  = "Master List of All Jobs from $formattedStart to $formattedEnd";
+    $titleLine1 = 'Master Schedule';
+    $titleLine2 = "$formattedStart to $formattedEnd";
 } else {
     $stmt = $mysqli->prepare('SELECT name FROM contractors WHERE id = ?');
     $stmt->bind_param('i', $cid);
@@ -38,7 +40,9 @@ if ($cid === 'master') {
     if (!$contractorName) {
         die('Contractor not found.');
     }
-    $pageTitle = htmlspecialchars($contractorName) . "'s Schedule from $formattedStart to $formattedEnd";
+    $pageTitle  = htmlspecialchars($contractorName) . "'s Schedule from $formattedStart to $formattedEnd";
+    $titleLine1 = htmlspecialchars($contractorName) . "'s Schedule";
+    $titleLine2 = "$formattedStart to $formattedEnd";
 }
 
 if ($cid === 'master') {
@@ -136,11 +140,37 @@ function listAttachments(string $uid): string {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         table { font-size: 0.9rem; }
+        .job-table {
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+        }
+        .job-block td {
+            border-left: 1px solid #dee2e6;
+            border-right: 1px solid #dee2e6;
+            border-top: none;
+            border-bottom: none;
+        }
+        .job-title td {
+            border-top: 1px solid #dee2e6;
+            border-top-left-radius: 0.25rem;
+            border-top-right-radius: 0.25rem;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .job-notes td {
+            border-bottom: 1px solid #dee2e6;
+            border-bottom-left-radius: 0.25rem;
+            border-bottom-right-radius: 0.25rem;
+        }
     </style>
 </head>
 <body class="container mt-5">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h1 class="mb-0"><?= $pageTitle ?></h1>
+    <div class="d-flex align-items-start justify-content-between mb-3">
+        <div>
+            <h1 class="mb-0"><?= $titleLine1 ?></h1>
+            <h4 class="mb-0"><?= $titleLine2 ?></h4>
+        </div>
         <div class="d-flex align-items-center">
             <span class="mr-2">Print Jobs</span>
             <button onclick="window.print()" class="btn btn-light" title="Print this page">
@@ -155,7 +185,7 @@ function listAttachments(string $uid): string {
 <?php if (empty($jobs)): ?>
     <p>No jobs found <?= ($cid === 'master') ? 'for this date range.' : 'for this contractor in this date range.'; ?></p>
 <?php else: ?>
-    <table class="table">
+    <table class="table job-table">
         <thead>
             <tr>
                 <?php if ($cid === 'master'): ?>
@@ -184,7 +214,14 @@ function listAttachments(string $uid): string {
             $i++;
             $dateDisp = date('m/d/Y', strtotime($job['work_date']));
         ?>
-            <tr class="<?= $rowClass ?>">
+            <tr class="job-title job-block <?= $rowClass ?>">
+                <?php if ($cid === 'master'): ?>
+                    <td colspan="10"><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
+                <?php else: ?>
+                    <td colspan="9"><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
+                <?php endif; ?>
+            </tr>
+            <tr class="job-block <?= $rowClass ?>">
                 <?php if ($cid === 'master'): ?>
                     <td><?= htmlspecialchars($job['contractor_name']) ?></td>
                 <?php endif; ?>
@@ -198,7 +235,7 @@ function listAttachments(string $uid): string {
                 <td><?= $labor ?></td>
                 <td><?= $attach ?></td>
             </tr>
-            <tr class="<?= $rowClass ?>">
+            <tr class="job-notes job-block <?= $rowClass ?>">
                 <?php if ($cid === 'master'): ?>
                     <td colspan="10"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
                 <?php else: ?>
