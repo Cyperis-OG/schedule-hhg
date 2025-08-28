@@ -210,7 +210,7 @@ function listAttachments(string $uid): string {
                 <th>Attachment</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody><br>
         <?php $total = count($jobs); $i = 0; foreach ($jobs as $job):
             $start = date('g:i A', strtotime($job['start_time']));
             $end   = date('g:i A', strtotime($job['end_time']));
