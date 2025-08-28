@@ -75,15 +75,6 @@
         { "key": "location",      "label": "Location",    "type": "text", "required": false, "quick": true },
         { "key": "contractor_id", "label": "Contractor",  "type": "contractor", "required": false, "quick": true },
 
-        { "key": "tractors",      "label": "TTrailers",   "type": "number", "default": 0, "quick": true },
-        { "key": "bobtails",      "label": "Bobtails",    "type": "number", "default": 0, "quick": true },
-
-        { "key": "movers",        "label": "Movers",      "type": "number", "default": 0, "quick": true },
-        { "key": "drivers",       "label": "Drivers",     "type": "number", "default": 0, "quick": true },
-        { "key": "installers",    "label": "Installers",  "type": "number", "default": 0, "quick": true },
-        { "key": "supervisors",   "label": "Supervisors", "type": "number", "default": 0, "quick": true },
-        { "key": "pctechs",       "label": "PC Techs",    "type": "number", "default": 0, "quick": true },
-
         { "key": "day_notes",     "label": "Day Notes",   "type": "textarea", "quick": true }
       ]
     },
