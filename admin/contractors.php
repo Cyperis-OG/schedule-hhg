@@ -187,6 +187,7 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
             <tr>
               <th class="order-col">Order</th>
               <th>Name</th>
+              <th>Driver ID</th>
               <th>Email(s)</th>
               <th>Status</th>
               <th>Color</th>
@@ -218,6 +219,10 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
         <div class="field">
           <label>Name</label>
           <input id="addName" type="text" placeholder="e.g., Eddie" />
+        </div>
+        <div class="field">
+          <label>Driver ID</label>
+          <input id="addDriver" type="text" placeholder="e.g., 1234" />
         </div>
         <div class="field">
           <label>Email(s)</label>
@@ -257,8 +262,9 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
     const saveAdd  = document.getElementById('saveAdd');
     const mBack    = document.getElementById('backdrop');
     const mRoot    = document.getElementById('modal');
-    const addName  = document.getElementById('addName');
-    const addEmail = document.getElementById('addEmail');
+    const addName    = document.getElementById('addName');
+    const addDriver  = document.getElementById('addDriver');
+    const addEmail   = document.getElementById('addEmail');
     const addColorPick = document.getElementById('addColorPick');
     const addColorHex  = document.getElementById('addColorHex');
 
@@ -317,13 +323,19 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
           <div class="name-edit inline" style="display:none">
             <input class="edit-name" type="text" value="${esc(c.name)}" />
           </div>
-          </td>
-          <td>
-            <div class="email-view">${esc(c.email_notify || '')}</div>
-            <div class="email-edit" style="display:none">
-              <input class="edit-email" type="text" value="${esc(c.email_notify || '')}" />
-            </div>
-          </td>
+        </td>
+        <td>
+          <div class="driver-view">${esc(c.driver_id || '')}</div>
+          <div class="driver-edit" style="display:none">
+            <input class="edit-driver" type="text" value="${esc(c.driver_id || '')}" />
+          </div>
+        </td>
+        <td>
+          <div class="email-view">${esc(c.email_notify || '')}</div>
+          <div class="email-edit" style="display:none">
+            <input class="edit-email" type="text" value="${esc(c.email_notify || '')}" />
+          </div>
+        </td>
           <td>
             <span class="badge ${c.active ? 'success' : 'muted'}">${c.active ? 'Active' : 'Disabled'}</span>
           </td>
@@ -355,6 +367,10 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
       const nameEdit = tr.querySelector('.name-edit');
       const nameInp  = tr.querySelector('.edit-name');
 
+      const driverView = tr.querySelector('.driver-view');
+      const driverEdit = tr.querySelector('.driver-edit');
+      const driverInp  = tr.querySelector('.edit-driver');
+
       const emailView = tr.querySelector('.email-view');
       const emailEdit = tr.querySelector('.email-edit');
       const emailInp  = tr.querySelector('.edit-email');
@@ -370,6 +386,8 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
         cancelBtn.style.display = '';
         nameView.style.display = 'none';
         nameEdit.style.display = '';
+        driverView.style.display = 'none';
+        driverEdit.style.display = '';
         emailView.style.display = 'none';
         emailEdit.style.display = '';
         colorView.style.display = 'none';
@@ -383,6 +401,8 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
         cancelBtn.style.display = 'none';
         nameView.style.display = '';
         nameEdit.style.display = 'none';
+        driverView.style.display = '';
+        driverEdit.style.display = 'none';
         emailView.style.display = '';
         emailEdit.style.display = 'none';
         colorView.style.display = '';
@@ -394,11 +414,12 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
       saveBtn.addEventListener('click', async () => {
         const id = Number(tr.dataset.id);
         const name = nameInp.value.trim();
+        const driver_id = driverInp.value.trim();
         const email_notify = emailInp.value.trim();
         const color_hex = colorHex.value.trim();
         if (!name) return;
         try {
-          await mutate({ action:'update', id, name, color_hex, email_notify });
+          await mutate({ action:'update', id, name, driver_id, color_hex, email_notify });
           showToast('Contractor updated');
           await load();
         } catch(e){ showToast(e.message); }
@@ -469,12 +490,14 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
 
     saveAdd.addEventListener('click', async () => {
       const name = addName.value.trim();
+      const driver_id = addDriver.value.trim();
       const email_notify = addEmail.value.trim();
       const color_hex = addColorHex.value.trim();
       if (!name) { addName.focus(); return; }
       try {
-        await mutate({ action:'add', name, color_hex, email_notify });
+        await mutate({ action:'add', name, driver_id, color_hex, email_notify });
         addName.value = '';
+        addDriver.value = '';
         addEmail.value = '';
         addColorHex.value = '#0E4BAA';
         addColorPick.value = '#0E4BAA';
