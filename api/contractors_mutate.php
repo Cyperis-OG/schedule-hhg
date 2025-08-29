@@ -25,7 +25,8 @@ $action = $payload['action'] ?? '';
 function respond($arr) { echo json_encode($arr, JSON_UNESCAPED_UNICODE); exit; }
 
 if ($action === 'add') {
-    $name = trim($payload['name'] ?? '');
+    $name  = trim($payload['name'] ?? '');
+    $driver = trim($payload['driver_id'] ?? '');
     $color = trim($payload['color_hex'] ?? '');
     $email = trim($payload['email_notify'] ?? '');
     if ($name === '') respond(['error' => 'Name required']);
@@ -36,22 +37,23 @@ if ($action === 'add') {
         $max = (int)$r['m'] + 10;
     }
     $uid = ulid();
-    $stmt = $mysqli->prepare("INSERT INTO contractors (uid,name,active,display_order,color_hex,email_notify) VALUES (?,?,?,?,?,?)");
+    $stmt = $mysqli->prepare("INSERT INTO contractors (uid,name,driver_id,active,display_order,color_hex,email_notify) VALUES (?,?,?,?,?,?,?)");
     $active = 1;
-    $stmt->bind_param('ssisss', $uid, $name, $active, $max, $color, $email);
+    $stmt->bind_param('sssiiss', $uid, $name, $driver, $active, $max, $color, $email);
     $stmt->execute();
 
     respond(['ok' => true, 'id' => (int)$mysqli->insert_id, 'uid' => $uid, 'display_order' => $max]);
 }
 
 if ($action === 'update') {
-    $id = (int)($payload['id'] ?? 0);
-    $name = trim($payload['name'] ?? '');
-    $color = trim($payload['color_hex'] ?? '');
-    $email = trim($payload['email_notify'] ?? '');
+    $id     = (int)($payload['id'] ?? 0);
+    $name   = trim($payload['name'] ?? '');
+    $driver = trim($payload['driver_id'] ?? '');
+    $color  = trim($payload['color_hex'] ?? '');
+    $email  = trim($payload['email_notify'] ?? '');
     if ($id <= 0 || $name === '') respond(['error' => 'Bad input']);
-    $stmt = $mysqli->prepare("UPDATE contractors SET name=?, color_hex=?, email_notify=? WHERE id=?");
-    $stmt->bind_param('sssi', $name, $color, $email, $id);
+    $stmt = $mysqli->prepare("UPDATE contractors SET name=?, driver_id=?, color_hex=?, email_notify=? WHERE id=?");
+    $stmt->bind_param('ssssi', $name, $driver, $color, $email, $id);
     $stmt->execute();
     respond(['ok' => true]);
 }
