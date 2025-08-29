@@ -6,12 +6,12 @@
  * Used by the admin page and (optionally) other UIs.
  *
  * Output:
- *  { contractors: [ {id, uid, name, active, display_order, color_hex, email_notify} ... ] }
+ *  { contractors: [ {id, uid, name, driver_id, active, display_order, color_hex, email_notify} ... ] }
  */
 include '/home/freeman/job_scheduler.php';
 header('Content-Type: application/json');
 
-$res = $mysqli->query("SELECT id, uid, name, active, display_order, color_hex, email_notify
+$res = $mysqli->query("SELECT id, uid, name, driver_id, active, display_order, color_hex, email_notify
                        FROM contractors
                        ORDER BY active DESC, display_order ASC, name ASC");
 
