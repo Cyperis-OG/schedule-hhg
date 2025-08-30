@@ -35,6 +35,16 @@
     electricians: 'NumElectricians'
   };
 
+  const STATUS_LABELS = {
+    placeholder: 'Placeholder',
+    needs_paperwork: 'Scheduled - Needs Paperwork',
+    scheduled: 'Scheduled',
+    dispatched: 'Dispatched',
+    canceled: 'Canceled',
+    completed: 'Completed',
+    paid: 'Paid'
+  };
+
   const pad2 = (n) => (n < 10 ? "0" : "") + n;
   const fmtTimeRange = (start, end) => {
     try {
@@ -65,7 +75,8 @@
     const title = ev.Customer || (ev.Subject ? String(ev.Subject).replace(/\s*\(.*?\)\s*$/,'') : 'Job');
     const jobNo = (ev.JobNumber && ev.JobNumber !== 'null') ? String(ev.JobNumber) : '';
     const loc   = ev.Location || '';
-    const status= ev.Status || 'scheduled';
+    const statusSlug = String(ev.Status || 'scheduled').toLowerCase();
+    const statusLabel = STATUS_LABELS[statusSlug] || statusSlug;
     const contractor = contractorNameById(ev.ContractorId);
 
     const countsText = DAY_FIELDS.map(f => {
@@ -83,8 +94,13 @@
         <button class="qi-btn danger" data-act="delete">Delete</button>
     ` : '';
 
+    const prelim = ['placeholder','needs_paperwork'];
+    const warn = (!IS_ADMIN && start > new Date() && prelim.includes(statusSlug))
+      ? '<div class="qi-warning">This job is not confirmed.</div>' : '';
+
     host.innerHTML = `
       <div class="qi-title">${esc(title)}</div>
+      ${warn}
       <div class="qi-sheet">
         <div class="qi-row"><div class="qi-label">Time:</div>
           <div class="qi-value">${esc(fmtTimeRange(start, end))}</div></div>
@@ -99,7 +115,7 @@
           <div class="qi-value">${esc(countsText)}</div></div>
 
         <div class="qi-row"><div class="qi-label">Status:</div>
-          <div class="qi-value">${esc(status)}</div></div>
+          <div class="qi-value">${esc(statusLabel)}</div></div>
 
         ${jobNo ? `<div class="qi-row"><div class="qi-label">Job #:</div>
           <div class="qi-value">${esc(jobNo)}</div></div>` : ''}
