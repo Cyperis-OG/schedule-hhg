@@ -55,7 +55,7 @@ while ($row = $res->fetch_assoc()) { $cons[] = $row; }
     </label>
     <div id="driverField" style="display:none;">
       <label>Driver ID
-        <input type="password" name="driver_id" />
+        <input type="text" name="driver_id" />
       </label>
     </div>
     <button type="submit">Login</button>
