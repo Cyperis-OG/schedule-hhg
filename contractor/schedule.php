@@ -16,10 +16,10 @@ $res = $stmt->get_result();
 $jobs = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-$today = date('Y-m-d');
-$isFutureDay = $date > $today;
-$now = new DateTime('now', new DateTimeZone('America/Chicago'));
-$showPreviewNotice = $isFutureDay && ((int)$now->format('Hi') < 1600);
+$today = date('Y-m-d');␊
+$tomorrow = date('Y-m-d', strtotime($today.' +1 day'));
+$now = new DateTime('now', new DateTimeZone('America/Chicago'));␊
+$showPreviewNotice = ($date > $tomorrow) || ($date === $tomorrow && ((int)$now->format('Hi') < 1600));
 
 function h($s){ return htmlspecialchars($s, ENT_QUOTES); }
 function fmtTime($t){ return $t ? substr($t,0,5) : ''; }
@@ -84,7 +84,7 @@ function listAttachments($uid){
   <?php endif; ?>
 
   <?php foreach ($jobs as $j): $uid=h($j['uid']); $status=strtolower($j['status'] ?? ''); ?>
-    <button class="job-btn status-<?= h($status) ?>" onclick="toggleJob('<?= $uid ?>','<?= h($status) ?>')">
+    <button class="job-btn status-<?= h($status) ?>" onclick="toggleJob('<?= $uid ?>')">
       <?= h($j['customer_name']) ?> (<?= fmtTime($j['start_time']) ?>-<?= fmtTime($j['end_time']) ?>)
     </button>
     <div id="d<?= $uid ?>" class="job-details" style="display:none;">
@@ -97,10 +97,11 @@ function listAttachments($uid){
   <?php endforeach; ?>
   <p style="text-align:center;margin-top:20px;"><a href="index.php">Back</a></p>
   <script>
-    function toggleJob(uid,status){
+    const SHOW_PREVIEW = <?= $showPreviewNotice ? 'true' : 'false' ?>;
+    function toggleJob(uid){
       const d=document.getElementById('d'+uid);
       if(d.style.display==='none'){
-        if(status!=='scheduled'){
+        if(SHOW_PREVIEW){
           alert('This job is unconfirmed and available for preview. It is not yours or confirmed until the schedule is sent out and finalized.');
         }
         d.style.display='block';
@@ -108,11 +109,11 @@ function listAttachments($uid){
         d.style.display='none';
       }
     }
-    <?php if ($showPreviewNotice): ?>
-    window.addEventListener('load', function(){
-      alert('The schedule is not final yet and is only a preview. Please check back at 4 PM for the final schedule.');
-    });
-    <?php endif; ?>
+    if(SHOW_PREVIEW){
+      window.addEventListener('load', function(){
+        alert('The schedule is not final yet and is only a preview. Please check back at 4 PM for the final schedule.');
+      });
+    }
   </script>
 </body>
 </html>
