@@ -164,8 +164,15 @@
           <div class="qa-row status-row">
             <label>Status</label>
             <select name="job.status">
-              ${["scheduled","pending","complete","canceled"]
-                .map(s => `<option value="${s}" ${String(job.status || job.Status || "scheduled")===s?"selected":""}>${s[0].toUpperCase()+s.slice(1)}</option>`).join("")}
+              ${[
+                ['placeholder','Placeholder'],
+                ['needs_paperwork','Scheduled - Needs Paperwork'],
+                ['scheduled','Scheduled'],
+                ['dispatched','Dispatched'],
+                ['canceled','Canceled'],
+                ['completed','Completed'],
+                ['paid','Paid']
+              ].map(([val,label]) => `<option value="${val}" ${String(job.status || job.Status || "scheduled")===val?"selected":""}>${label}</option>`).join("")}
             </select>
           </div>
 
