@@ -52,7 +52,7 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
       font: 14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
     }
     a{ color:var(--primary); text-decoration:none }
-    .wrap{ max-width:1100px; margin:24px auto; padding:0 16px }
+    .wrap{ max-width:1400px; margin:24px auto; padding:0 16px }
     .toolbar{
       display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:16px;
     }
@@ -97,6 +97,8 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
     }
     tbody td{ border-top:1px solid var(--line); padding:10px 12px; vertical-align:middle }
     .order-col{ width:56px; text-align:center }
+    .name-col{ width:220px }
+    .driver-col{ width:160px }
     .actions-col{ width:260px }
 
     .drag-handle{ cursor:grab; color:var(--muted); font-size:18px; user-select:none }
@@ -111,6 +113,8 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
     .inline{ display:flex; gap:8px; align-items:center }
     .inline input[type="text"]{ border:1px solid var(--line); border-radius:8px; padding:6px 8px; width:280px }
     .inline input[type="color"]{ border:1px solid var(--line); border-radius:8px; height:32px; width:42px; padding:3px; background:#fff }
+    .name-edit input,
+    .driver-edit input{ width:100% }
 
     .empty{
       text-align:center; color:var(--muted); padding:28px 0;
@@ -186,8 +190,8 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
           <thead>
             <tr>
               <th class="order-col">Order</th>
-              <th>Name</th>
-              <th>Driver ID</th>
+              <th class="name-col">Name</th>
+              <th class="driver-col">Driver ID</th>
               <th>Email(s)</th>
               <th>Status</th>
               <th>Color</th>
@@ -318,13 +322,13 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
 
       tr.innerHTML = `
         <td class="order-col"><span class="drag-handle" title="Drag to reorder">☰</span></td>
-        <td>
+        <td class="name-col">
           <div class="name-view">${esc(c.name)}</div>
           <div class="name-edit inline" style="display:none">
             <input class="edit-name" type="text" value="${esc(c.name)}" />
           </div>
         </td>
-        <td>
+        <td class="driver-col">
           <div class="driver-view">${esc(c.driver_id || '')}</div>
           <div class="driver-edit" style="display:none">
             <input class="edit-driver" type="text" value="${esc(c.driver_id || '')}" />
