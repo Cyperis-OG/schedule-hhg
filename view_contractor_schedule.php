@@ -18,8 +18,12 @@ if (!$cid || !$date) {
 $allow = false;
 if (($_SESSION['role'] ?? '') === 'admin') {
     $allow = true;
-} elseif ($tok && ctype_digit((string)$cid) && magic_link_verify((int)$cid, $date, $tok)) {
-    $allow = true;
+} elseif ($tok) {
+    if ($cid === 'master' && magic_link_verify(0, $date, $tok)) {
+        $allow = true;
+    } elseif (ctype_digit((string)$cid) && magic_link_verify((int)$cid, $date, $tok)) {
+        $allow = true;
+    }
 }
 if (!$allow) {
     die('Access denied.');
