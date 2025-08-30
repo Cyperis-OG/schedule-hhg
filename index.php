@@ -17,6 +17,11 @@ if (isset($_GET['ctr'], $_GET['tok'])) {
 }
 
 $isAdmin = (($_SESSION['role'] ?? '') === 'admin');
+$isMobile = preg_match('/Mobi|Android|iPhone/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
+if ($isAdmin && $isMobile) {
+  header('Location: ./admin/mobile_schedule.php?date=' . urlencode($initDate));
+  exit;
+}
 $dayFieldsJson = file_get_contents(__DIR__ . '/config/day_fields.json');
 if ($dayFieldsJson === false) $dayFieldsJson = '[]';
 ?>
