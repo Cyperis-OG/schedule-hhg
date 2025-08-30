@@ -26,6 +26,9 @@ $today   = new DateTimeImmutable('today');
 $dow     = (int)$today->format('N');
 $targets = [];
 
+// Delay between processing days (seconds)
+$delaySeconds = (int)getenv('SCHEDULE_EMAIL_DELAY') ?: 300;
+
 if ($dow >= 1 && $dow <= 4) {
     // Monday–Thursday → next day
     $targets[] = $today->modify('+1 day')->format('Y-m-d');
@@ -39,6 +42,8 @@ if ($dow >= 1 && $dow <= 4) {
     exit;
 }
 
+$targetCount = count($targets);
+
 $sql = "SELECT c.id AS contractor_id, c.email_notify AS email, c.name AS contractor,
                jd.work_date, jd.start_time, jd.end_time, j.title, j.job_number
         FROM job_days jd
@@ -47,7 +52,7 @@ $sql = "SELECT c.id AS contractor_id, c.email_notify AS email, c.name AS contrac
         WHERE jd.work_date = ? AND c.active=1
         ORDER BY c.display_order, jd.start_time";
 
-foreach ($targets as $day) {
+foreach ($targets as $i => $day) {
     $stmt = $mysqli->prepare($sql);
     $stmt->bind_param('s', $day);
     $stmt->execute();
@@ -99,6 +104,10 @@ foreach ($targets as $day) {
         $headersStr = implode("\r\n", $headers);
 
         @mail($to, $subject, $body, $headersStr); // swap with PHPMailer in production
+    }
+
+    if ($delaySeconds > 0 && $i < $targetCount - 1) {
+        sleep($delaySeconds);
     }
 }
 
