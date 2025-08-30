@@ -38,6 +38,18 @@ if (!$row = $res->fetch_assoc()) {
     echo json_encode(['error' => 'not found']); exit;
 }
 
+$statusLabels = [
+    'placeholder'      => 'Placeholder',
+    'needs_paperwork'  => 'Scheduled - Needs Paperwork',
+    'scheduled'        => 'Scheduled',
+    'dispatched'       => 'Dispatched',
+    'canceled'         => 'Canceled',
+    'completed'        => 'Completed',
+    'paid'             => 'Paid'
+];
+$row['status']      = $statusLabels[strtolower($row['status']      ?? '')] ?? ($row['status'] ?? '');
+$row['job_status']  = $statusLabels[strtolower($row['job_status']  ?? '')] ?? ($row['job_status'] ?? '');
+
 // 3) Tiny template expansion
 function val($path, $row) {
     // supports {{jobs.x}}, {{job_days.y}}, {{contractors.name}}, and a || fallback
