@@ -58,7 +58,14 @@ function listAttachments($uid){
     .nav a { text-decoration:none; font-size:1.2rem; }
     .date { font-weight:bold; }
     .status { text-align:center; margin-bottom:10px; }
-    .job-btn { width:100%; padding:15px; margin:8px 0; font-size:1.1rem; }
+    .job-btn { width:100%; padding:15px; margin:8px 0; font-size:1.1rem; border:none; border-radius:4px; cursor:pointer; }
+    .job-btn.status-placeholder { background:#b0b0b0; color:#fff; }
+    .job-btn.status-needs_paperwork { background:#4b9dd3; color:#fff; }
+    .job-btn.status-scheduled { background:#003366; color:#fff; }
+    .job-btn.status-dispatched { background:#e68a00; color:#fff; }
+    .job-btn.status-canceled { background:#800020; color:#fff; }
+    .job-btn.status-completed { background:#10b981; color:#fff; }
+    .job-btn.status-paid { background:#10b981; color:#fff; border:2px solid #d4af37; }
     .job-details { padding:10px; background:#f0f0f0; border-radius:8px; }
   </style>
 </head>
@@ -74,8 +81,8 @@ function listAttachments($uid){
     <p>No jobs for this day.</p>
   <?php endif; ?>
 
-  <?php foreach ($jobs as $j): $uid=h($j['uid']); ?>
-    <button class="job-btn" onclick="var d=document.getElementById('d<?= $uid ?>'); d.style.display=d.style.display==='none'?'block':'none';">
+  <?php foreach ($jobs as $j): $uid=h($j['uid']); $status=strtolower($j['status'] ?? ''); ?>
+    <button class="job-btn status-<?= h($status) ?>" onclick="toggleJob('<?= $uid ?>','<?= h($status) ?>')">
       <?= h($j['customer_name']) ?> (<?= fmtTime($j['start_time']) ?>-<?= fmtTime($j['end_time']) ?>)
     </button>
     <div id="d<?= $uid ?>" class="job-details" style="display:none;">
@@ -87,5 +94,18 @@ function listAttachments($uid){
     </div>
   <?php endforeach; ?>
   <p style="text-align:center;margin-top:20px;"><a href="index.php">Back</a></p>
+  <script>
+    function toggleJob(uid,status){
+      const d=document.getElementById('d'+uid);
+      if(d.style.display==='none'){
+        if(status!=='scheduled'){
+          alert('This job is unconfirmed and available for preview. It is not yours or confirmed until the schedule is sent out and finalized.');
+        }
+        d.style.display='block';
+      }else{
+        d.style.display='none';
+      }
+    }
+  </script>
 </body>
 </html>
