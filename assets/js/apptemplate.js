@@ -54,8 +54,12 @@
     const loc   = d.Location ? String(d.Location) : '';
     const cust  = d.Customer || (d.Subject ? String(d.Subject).replace(/\s*\(.*?\)\s*$/,'') : '');
     const top   = (jobNo && loc) ? `${jobNo} - ${loc}` : (jobNo || loc || '');
+    const status = String(d.Status || '').toLowerCase();
 
     if (args.element) {
+      // reset previous status classes
+      args.element.classList.forEach(c => { if (c.startsWith('status-')) args.element.classList.remove(c); });
+      if (status) args.element.classList.add(`status-${status}`);
       args.element.innerHTML = `
         <div class="appt">
           <div class="appt-left">
