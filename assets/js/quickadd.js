@@ -98,10 +98,13 @@
           <div class="qa-row status-row">
             <label>Status</label>
             <select name="job.status">
+              <option value="placeholder">Placeholder</option>
+              <option value="needs_paperwork">Scheduled - Needs Paperwork</option>
               <option value="scheduled" selected>Scheduled</option>
-              <option value="pending">Pending</option>
-              <option value="complete">Complete</option>
+              <option value="dispatched">Dispatched</option>
               <option value="canceled">Canceled</option>
+              <option value="completed">Completed</option>
+              <option value="paid">Paid</option>
             </select>
           </div>
 
