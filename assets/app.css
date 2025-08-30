@@ -79,6 +79,34 @@ html, body { height:100%; margin:0; }
 /* put in app.css */
 #Schedule.dnd-off .e-appointment { cursor: not-allowed; }
 
+/* Status colors */
+.e-appointment[class*="status-"] { border:1px solid transparent; }
+.e-appointment.status-placeholder,
+.e-appointment.status-placeholder .appt { background:#9ca3af !important; color:#000 !important; }
+.e-appointment.status-needs_paperwork,
+.e-appointment.status-needs_paperwork .appt { background:#bfdbfe !important; color:#000 !important; }
+.e-appointment.status-scheduled,
+.e-appointment.status-scheduled .appt { background:#2563eb !important; color:#fff !important; }
+.e-appointment.status-dispatched,
+.e-appointment.status-dispatched .appt { background:#facc15 !important; color:#000 !important; }
+.e-appointment.status-canceled,
+.e-appointment.status-canceled .appt { background:#ef4444 !important; color:#000 !important; }
+.e-appointment.status-completed,
+.e-appointment.status-completed .appt { background:#10b981 !important; color:#fff !important; }
+.e-appointment.status-paid,
+.e-appointment.status-paid .appt { background:#10b981 !important; color:#fff !important; }
+.e-appointment.status-paid { border:2px solid #d4af37 !important; }
+
+.qi-warning {
+  background:#fef3c7;
+  color:#b91c1c;
+  padding:8px 12px;
+  border-radius:4px;
+  margin:0 12px 12px;
+  text-align:center;
+  font-weight:600;
+}
+
 /* ---------- Quick Info (old look, centered, with shadow) ---------- */
 .qi-dialog .e-dlg-content { padding: 0; }
 
