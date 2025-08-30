@@ -31,12 +31,16 @@ function generate_email_body(string $title, string $message, string $link): stri
 HTML;
 }
 
-function send_email(array $toEmails, string $subject, string $body, array $ccEmails = []): void {
+function send_email(array $toEmails, string $subject, string $body, array $ccEmails = [], ?callable $logger = null): bool {
     $to       = implode(',', $toEmails);
     $headers  = "MIME-Version: 1.0\r\n";
     $headers .= "Content-type: text/html; charset=UTF-8\r\n";
     if ($ccEmails) {
         $headers .= 'Cc: ' . implode(',', $ccEmails) . "\r\n";
     }
-    @mail($to, $subject, $body, $headers);
+    $result = mail($to, $subject, $body, $headers);
+    if ($logger) {
+        $logger('send_email to=' . $to . '; subject=' . $subject . '; cc=' . implode(',', $ccEmails) . '; result=' . ($result ? 'success' : 'failure'));
+    }
+    return $result;
 }
