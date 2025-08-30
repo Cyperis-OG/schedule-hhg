@@ -1,5 +1,6 @@
 <?php
 include '/home/freeman/job_scheduler.php';
+date_default_timezone_set('America/Chicago');
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'contractor') { header('Location: ../contractor_login.php'); exit; }
 $cid = (int)($_SESSION['contractor_id'] ?? 0);
@@ -15,11 +16,10 @@ $res = $stmt->get_result();
 $jobs = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-$statusScheduled = true;
-foreach ($jobs as $j) {
-  if (strtolower($j['status'] ?? '') !== 'scheduled') { $statusScheduled = false; break; }
-}
-$statusText = $statusScheduled ? 'Scheduled' : 'Pending - not confirmed';
+$today = date('Y-m-d');
+$isFutureDay = $date > $today;
+$now = new DateTime('now', new DateTimeZone('America/Chicago'));
+$showPreviewNotice = $isFutureDay && ((int)$now->format('Hi') < 1600);
 
 function h($s){ return htmlspecialchars($s, ENT_QUOTES); }
 function fmtTime($t){ return $t ? substr($t,0,5) : ''; }
@@ -57,7 +57,7 @@ function listAttachments($uid){
     .nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
     .nav a { text-decoration:none; font-size:1.2rem; }
     .date { font-weight:bold; }
-    .status { text-align:center; margin-bottom:10px; }
+    .pending-banner { background:#ffdddd; color:#a00; padding:10px; font-weight:bold; text-align:center; margin-bottom:10px; }
     .job-btn { width:100%; padding:15px; margin:8px 0; font-size:1.1rem; border:none; border-radius:4px; cursor:pointer; }
     .job-btn.status-placeholder { background:#b0b0b0; color:#fff; }
     .job-btn.status-needs_paperwork { background:#4b9dd3; color:#fff; }
@@ -75,7 +75,9 @@ function listAttachments($uid){
     <span class="date"><?= date('m/d/Y', strtotime($date)) ?></span>
     <a href="schedule.php?date=<?= $next ?>">Next Day &gt;</a>
   </div>
-  <div class="status"><?= $statusText ?></div>
+  <?php if ($showPreviewNotice): ?>
+    <div class="pending-banner">Pending - not confirmed</div>
+  <?php endif; ?>
 
   <?php if (!$jobs): ?>
     <p>No jobs for this day.</p>
@@ -106,6 +108,11 @@ function listAttachments($uid){
         d.style.display='none';
       }
     }
+    <?php if ($showPreviewNotice): ?>
+    window.addEventListener('load', function(){
+      alert('The schedule is not final yet and is only a preview. Please check back at 4 PM for the final schedule.');
+    });
+    <?php endif; ?>
   </script>
 </body>
 </html>
