@@ -82,15 +82,15 @@ html, body { height:100%; margin:0; }
 /* Status colors */
 .e-appointment[class*="status-"] { border:1px solid transparent; }
 .e-appointment.status-placeholder,
-.e-appointment.status-placeholder .appt { background:#9ca3af !important; color:#000 !important; }
+.e-appointment.status-placeholder .appt { background:#b0b0b0 !important; color:#fff !important; }
 .e-appointment.status-needs_paperwork,
-.e-appointment.status-needs_paperwork .appt { background:#bfdbfe !important; color:#000 !important; }
+.e-appointment.status-needs_paperwork .appt { background:#4b9dd3 !important; color:#fff !important; }
 .e-appointment.status-scheduled,
-.e-appointment.status-scheduled .appt { background:#2563eb !important; color:#fff !important; }
+.e-appointment.status-scheduled .appt { background:#003366 !important; color:#fff !important; }
 .e-appointment.status-dispatched,
-.e-appointment.status-dispatched .appt { background:#facc15 !important; color:#000 !important; }
+.e-appointment.status-dispatched .appt { background:#e68a00 !important; color:#fff !important; }
 .e-appointment.status-canceled,
-.e-appointment.status-canceled .appt { background:#ef4444 !important; color:#000 !important; }
+.e-appointment.status-canceled .appt { background:#800020 !important; color:#fff !important; }
 .e-appointment.status-completed,
 .e-appointment.status-completed .appt { background:#10b981 !important; color:#fff !important; }
 .e-appointment.status-paid,
