@@ -35,10 +35,13 @@
           "label": "Status",
           "type": "select",
           "options": [
+            ["placeholder", "Placeholder"],
+            ["needs_paperwork", "Scheduled - Needs Paperwork"],
             ["scheduled", "Scheduled"],
-            ["pending",   "Pending"],
-            ["complete",  "Complete"],
-            ["canceled",  "Canceled"]
+            ["dispatched", "Dispatched"],
+            ["canceled", "Canceled"],
+            ["completed", "Completed"],
+            ["paid", "Paid"]
           ],
           "default": "scheduled",
           "quick": true
