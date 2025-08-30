@@ -1,6 +1,7 @@
 <?php
 include '/home/freeman/job_scheduler.php';
 require_once __DIR__ . '/../lib/magic_link.php';
+require_once __DIR__ . '/../lib/email_helpers.php';
 
 // Additional addresses that should always be CC'd.
 // Populate this array with strings like 'person@example.com'.
@@ -19,6 +20,19 @@ if ($res) {
     $res->close();
 }
 $ccList = array_merge($adminCc, $extraCc);
+
+// Load master schedule recipients
+$masterRecipients = [];
+$res = $mysqli->query("SELECT email FROM master_schedule_recipients WHERE active=1");
+if ($res) {
+    while ($row = $res->fetch_assoc()) {
+        $email = trim($row['email'] ?? '');
+        if ($email !== '') {
+            $masterRecipients[] = $email;
+        }
+    }
+    $res->close();
+}
 
 // Determine which date(s) to send based on the day of week.
 // 1=Mon ... 7=Sun
@@ -72,38 +86,36 @@ foreach ($targets as $i => $day) {
     }
     $stmt->close();
 
-    // Compose and send mails (PHPMailer preferred).
+    // Compose and send mails
     foreach ($by as $cid => $info) {
         $emails = preg_split('/[\s,;]+/', $info['email'] ?? '', -1, PREG_SPLIT_NO_EMPTY);
         if (!$emails) {
             $emails = ['dispatch@example.com'];
         }
-        $to = implode(',', $emails);
         $contractor = $info['name'];
 
         $dt = new DateTimeImmutable($day);
         $prettyDay = $dt->format('l m/d/Y');
         $subject   = sprintf('Job Schedule for %s on %s', $contractor, $prettyDay);
-
-        $body = "Schedule for {$prettyDay} — {$contractor}\n\n";
-        foreach ($info['rows'] as $x) {
-            $body .= sprintf("%s (%s)  %s-%s\n",
-                $x['title'], $x['job_number'], substr($x['start_time'],0,5), substr($x['end_time'],0,5));
-        }
-
-        $token = magic_link_token($cid, $day);
-        $link  = sprintf('https://example.com/095/schedule-ng/view_contractor_schedule.php?contractor_id=%d&date=%s&tok=%s',
+        $message   = "Dear {$contractor},\n\nPlease click the button below to view your job schedule for {$prettyDay}.";
+        $token     = magic_link_token($cid, $day);
+        $link      = sprintf('https://example.com/095/schedule-ng/view_contractor_schedule.php?contractor_id=%d&date=%s&tok=%s',
             $cid, $day, $token);
-        $body .= "\nView schedule: {$link}\n";
+        $body      = generate_email_body($subject, $message, $link);
 
-        $headers = [];
-        if ($ccList) {
-            $headers[] = 'Cc: ' . implode(',', $ccList);
-        }
-        $headers[] = 'Content-Type: text/plain; charset=UTF-8';
-        $headersStr = implode("\r\n", $headers);
+        send_email($emails, $subject, $body, $ccList);
+    }
 
-        @mail($to, $subject, $body, $headersStr); // swap with PHPMailer in production
+    // Send master schedule
+    if ($masterRecipients) {
+        $dt = new DateTimeImmutable($day);
+        $prettyDay = $dt->format('l m/d/Y');
+        $subject = sprintf('Master List of All Jobs on %s', $prettyDay);
+        $message = "Please click the button below to view the master list of all jobs for {$prettyDay}.";
+        $link = sprintf('https://example.com/095/schedule-ng/view_contractor_schedule.php?contractor_id=master&date=%s&tok=%s',
+            $day, magic_link_token(0, $day));
+        $body = generate_email_body($subject, $message, $link);
+        send_email($masterRecipients, $subject, $body);
     }
 
     if ($delaySeconds > 0 && $i < $targetCount - 1) {
