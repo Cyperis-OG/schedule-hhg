@@ -5,6 +5,17 @@ require_once __DIR__ . '/../lib/email_helpers.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
+// ----------------------------------------------------------------------
+// Simple file logger for troubleshooting email sending
+// ----------------------------------------------------------------------
+$logFile = __DIR__ . '/manual_email.log';
+function manual_email_log(string $msg) {
+    global $logFile;
+    $timestamp = date('c');
+    file_put_contents($logFile, "[{$timestamp}] {$msg}\n", FILE_APPEND);
+}
+manual_email_log('Page hit. method=' . ($_SERVER['REQUEST_METHOD'] ?? '')); // initial load
+
 // Load master recipients
 $masterRecipients = [];
 $res = $mysqli->query("SELECT email FROM master_schedule_recipients WHERE active=1");
@@ -15,6 +26,7 @@ if ($res) {
     }
     $res->close();
 }
+manual_email_log('Master recipients: ' . implode(',', $masterRecipients));
 
 $date = $_GET['date'] ?? '';
 
@@ -23,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $date = $_POST['date'] ?? '';
     $ids  = array_map('intval', $_POST['contractors'] ?? []);
     $sendMaster = isset($_POST['send_master']);
+    manual_email_log('POST request date=' . $date . '; ids=' . implode(',', $ids) . '; sendMaster=' . ($sendMaster ? 'yes' : 'no'));
     $statuses = [];
     if ($date && $ids) {
         // Fetch contractor info
@@ -34,11 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $info = [];
         while ($row = $res->fetch_assoc()) { $info[$row['id']] = $row; }
         $stmt->close();
+        manual_email_log('Fetched contractor info: ' . json_encode($info));
 
         foreach ($ids as $cid) {
-            if (!isset($info[$cid])) continue;
+            if (!isset($info[$cid])) { manual_email_log("Contractor ID {$cid} missing from info"); continue; }
             $emails = preg_split('/[\s,;]+/', $info[$cid]['email_notify'] ?? '', -1, PREG_SPLIT_NO_EMPTY);
-            if (!$emails) continue;
+            if (!$emails) { manual_email_log("Contractor ID {$cid} has no email addresses"); continue; }
             $contractor = $info[$cid]['name'];
             $dt = new DateTimeImmutable($date);
             $pretty = $dt->format('l m/d/Y');
@@ -47,7 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $link = sprintf('https://example.com/095/schedule-ng/view_contractor_schedule.php?contractor_id=%d&date=%s&tok=%s',
                 $cid, $date, magic_link_token($cid, $date));
             $body = generate_email_body($subject, $message, $link);
-            send_email($emails, $subject, $body);
+            manual_email_log('Sending to contractor id=' . $cid . ' emails=' . implode(',', $emails));
+            $result = send_email($emails, $subject, $body, [], 'manual_email_log');
+            manual_email_log('Result for contractor id=' . $cid . ': ' . ($result ? 'success' : 'failure'));
             $statuses[] = "Sent to {$contractor}";
         }
         if ($sendMaster && $masterRecipients) {
@@ -58,7 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $link = sprintf('https://example.com/095/schedule-ng/view_contractor_schedule.php?contractor_id=master&date=%s&tok=%s',
                 $date, magic_link_token(0, $date));
             $body = generate_email_body($subject, $message, $link);
-            send_email($masterRecipients, $subject, $body);
+            manual_email_log('Sending master list to: ' . implode(',', $masterRecipients));
+            $result = send_email($masterRecipients, $subject, $body, [], 'manual_email_log');
+            manual_email_log('Master list result: ' . ($result ? 'success' : 'failure'));
             $statuses[] = "Master list sent";
         }
     }
