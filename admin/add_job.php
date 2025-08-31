@@ -266,8 +266,12 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
                 if (sal && item.default_salesman) sal.value=item.default_salesman;
                 const jobn=document.querySelector('input[name="job.job_number"]');
                 if (jobn && item.last_job_number) jobn.value=item.last_job_number;
-                const notes=document.querySelector('textarea[name="job.notes"]');
-                if (notes && item.standard_notes) notes.value=item.standard_notes;
+                const jobNotes=document.querySelector('textarea[name="job.notes"]');
+                const dayNotes=document.querySelector('textarea[name="day.0.day_notes"]');
+                if (item.standard_notes){
+                  if (jobNotes) jobNotes.value=item.standard_notes;
+                  if (dayNotes) dayNotes.value=item.standard_notes;
+                }
                 const sel=document.querySelector('select[name="day.0.contractor_id"]');
                 if (sel && item.preferred_contractor_id) sel.value=String(item.preferred_contractor_id);
               });
