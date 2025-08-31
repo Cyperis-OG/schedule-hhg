@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Job Fields — Schedule NG</title>
-  <link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="admin.css" />
   <style>
     table{border-collapse:collapse;width:100%;background:#fff}
     td,th{border:1px solid #ccc;padding:4px 8px}
