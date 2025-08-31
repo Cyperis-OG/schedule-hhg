@@ -148,6 +148,7 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
     const API = {
       contractors: '/095/schedule-ng/api/contractors_list.php',
       customers:   '/095/schedule-ng/api/customers_search.php',
+      salesmen:    '/095/schedule-ng/api/salesmen_search.php',
       save:        '/095/schedule-ng/api/job_save.php'
     };
 
@@ -265,6 +266,8 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
                 if (sal && item.default_salesman) sal.value=item.default_salesman;
                 const jobn=document.querySelector('input[name="job.job_number"]');
                 if (jobn && item.last_job_number) jobn.value=item.last_job_number;
+                const notes=document.querySelector('textarea[name="job.notes"]');
+                if (notes && item.standard_notes) notes.value=item.standard_notes;
                 const sel=document.querySelector('select[name="day.0.contractor_id"]');
                 if (sel && item.preferred_contractor_id) sel.value=String(item.preferred_contractor_id);
               });
@@ -275,6 +278,32 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
         });
 
         if (f.help) { const h=document.createElement('div'); h.className='help'; h.textContent=f.help; wrap.appendChild(h); }
+        return wrap;
+      }
+      else if (namePrefix === 'job.salesman') {
+        const ac=document.createElement('div'); ac.className='ac';
+        input=document.createElement('input');
+        input.type='text'; input.name=namePrefix; input.autocomplete='off';
+        input.placeholder=f.placeholder||'Start typing a salesman…';
+        const list=document.createElement('div'); list.className='ac-list';
+        ac.appendChild(input); ac.appendChild(list); wrap.appendChild(ac);
+        let tId=null;
+        input.addEventListener('input',()=>{
+          const q=input.value.trim();
+          if(tId) clearTimeout(tId);
+          if(q.length<2){ list.style.display='none'; return; }
+          tId=setTimeout(async()=>{
+            const r=await fetch(`${API.salesmen}?q=${encodeURIComponent(q)}`);
+            const j=await r.json(); list.innerHTML='';
+            (j.results||[]).forEach(item=>{
+              const it=document.createElement('div'); it.className='ac-item';
+              it.innerHTML=`<div><strong>${esc(item.name)}</strong> ${esc(item.phone||'')}</div>`;
+              it.addEventListener('click',()=>{ input.value=`${item.name} ${item.phone||''}`.trim(); list.style.display='none'; });
+              list.appendChild(it);
+            });
+            list.style.display = list.children.length ? 'block':'none';
+          },220);
+        });
         return wrap;
       }
       else {
@@ -345,6 +374,13 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
         vals.meta = vals.meta || {}; vals.meta.title_suffix = `(Day ${document.querySelectorAll('.day-card').length + 1})`;
         addDay(vals);
       });
+
+      const tractors = dayCard.querySelector(`[name="day.${idx}.tractors"]`);
+      const bobtails = dayCard.querySelector(`[name="day.${idx}.bobtails"]`);
+      const drivers = dayCard.querySelector(`[name="day.${idx}.drivers"]`);
+      function syncDrivers(){ if(drivers) drivers.value = (Number(tractors?.value||0) + Number(bobtails?.value||0)); }
+      [tractors,bobtails].forEach(el=>el&&el.addEventListener('input',syncDrivers));
+      syncDrivers();
 
       dayCount++;
 
