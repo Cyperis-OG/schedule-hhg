@@ -9,31 +9,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $name = trim($_POST['name'] ?? '');
   $pref = ($_POST['preferred_contractor_id'] ?? '') !== '' ? (int)$_POST['preferred_contractor_id'] : null;
   $sales = trim($_POST['default_salesman'] ?? '');
-  $jobn = trim($_POST['last_job_number'] ?? '');
+  $jobn = ($_POST['last_job_number'] ?? '') !== '' ? (float)$_POST['last_job_number'] : null;
   $loc = trim($_POST['default_location'] ?? '');
   $notes = trim($_POST['standard_notes'] ?? '');
   if ($name !== '') {
     if ($id > 0) {
       $stmt = $mysqli->prepare('UPDATE customers SET name=?, preferred_contractor_id=?, default_salesman=?, last_job_number=?, default_location=?, standard_notes=? WHERE id=?');
       if ($stmt) {
-        $stmt->bind_param('sissssi', $name, $pref, $sales, $jobn, $loc, $notes, $id);
-        $stmt->execute();
-        if ($stmt->error) {
-          error_log('DB execute failed: ' . $stmt->error);
+        $stmt->bind_param('sisdssi', $name, $pref, $sales, $jobn, $loc, $notes, $id);
+        if (!$stmt->execute()) {
+          $err = $stmt->error;
+          error_log('DB execute failed: ' . $err);
+          echo '<p>DB execute failed: ' . htmlspecialchars($err) . '</p>';
+          exit;
         }
       } else {
-        error_log('DB prepare failed: ' . $mysqli->error);
+        $err = $mysqli->error;
+        error_log('DB prepare failed: ' . $err);
+        echo '<p>DB prepare failed: ' . htmlspecialchars($err) . '</p>';
+        exit;
       }
     } else {
       $stmt = $mysqli->prepare('INSERT INTO customers (name, preferred_contractor_id, default_salesman, last_job_number, default_location, standard_notes) VALUES (?,?,?,?,?,?)');
       if ($stmt) {
-        $stmt->bind_param('sissss', $name, $pref, $sales, $jobn, $loc, $notes);
-        $stmt->execute();
-        if ($stmt->error) {
-          error_log('DB execute failed: ' . $stmt->error);
+        $stmt->bind_param('sisdss', $name, $pref, $sales, $jobn, $loc, $notes);
+        if (!$stmt->execute()) {
+          $err = $stmt->error;
+          error_log('DB execute failed: ' . $err);
+          echo '<p>DB execute failed: ' . htmlspecialchars($err) . '</p>';
+          exit;
         }
       } else {
-        error_log('DB prepare failed: ' . $mysqli->error);
+        $err = $mysqli->error;
+        error_log('DB prepare failed: ' . $err);
+        echo '<p>DB prepare failed: ' . htmlspecialchars($err) . '</p>';
+        exit;
       }
     }
   }
