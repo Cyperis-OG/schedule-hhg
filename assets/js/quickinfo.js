@@ -90,7 +90,7 @@
 
     const adminBtns = IS_ADMIN ? `
         <button class="qi-btn"        data-act="copy">Copy</button>
-        <button class="qi-btn"        data-act="edit">Edit/View Details</button>
+        ${window.editJob ? '<button class="qi-btn"        data-act="edit">Edit/View Details</button>' : ''}
         <button class="qi-btn danger" data-act="delete">Delete</button>
     ` : '';
 
@@ -133,19 +133,21 @@
     // Wire buttons (close always; others only for admin)
     host.querySelector('[data-act="close"]')?.addEventListener('click', () => closeInfo());
     if (IS_ADMIN) {
-      host.querySelector('[data-act="edit"]')?.addEventListener('click', () => {
-      // Close first (this was causing your ReferenceError)
-      closeInfo();
-      // Then open the full editor if available
-      const dayUid = ev.Id || ev.day_uid || ev.DayUID;
-      if (window.editJob?.openByDayId && dayUid) {
-        window.editJob.openByDayId(dayUid);
-      } else if (window.editJob?.openByJobId && (ev.JobId || ev.job_id)) {
-        window.editJob.openByJobId(ev.JobId || ev.job_id);
-      } else {
-        alert('Edit module is not loaded.');
+      if (window.editJob) {
+        host.querySelector('[data-act="edit"]')?.addEventListener('click', () => {
+          // Close first (this was causing your ReferenceError)
+          closeInfo();
+          // Then open the full editor if available
+          const dayUid = ev.Id || ev.day_uid || ev.DayUID;
+          if (window.editJob?.openByDayId && dayUid) {
+            window.editJob.openByDayId(dayUid);
+          } else if (window.editJob?.openByJobId && (ev.JobId || ev.job_id)) {
+            window.editJob.openByJobId(ev.JobId || ev.job_id);
+          } else {
+            alert('Edit module is not loaded.');
+          }
+        });
       }
-      });
       host.querySelector('[data-act="copy"]')?.addEventListener('click', () => handleCopy(ev));
       host.querySelector('[data-act="delete"]')?.addEventListener('click', () => handleDelete(ev));
     }
