@@ -47,7 +47,7 @@ function listAttachments($uid){
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Schedule</title>
-  <link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="admin.css" />
   <style>
     body { font-family:sans-serif; padding:10px; }
     .nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
