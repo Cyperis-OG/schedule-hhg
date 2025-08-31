@@ -10,14 +10,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $name = trim($_POST['name'] ?? '');
   $pref = ($_POST['preferred_contractor_id'] ?? '') !== '' ? (int)$_POST['preferred_contractor_id'] : null;
   $sales = trim($_POST['default_salesman'] ?? '');
-  $jobn = ($_POST['last_job_number'] ?? '') !== '' ? (float)$_POST['last_job_number'] : null;
+  $jobn = ($_POST['last_job_number'] ?? '') !== '' ? (int)$_POST['last_job_number'] : null;
   $loc = trim($_POST['default_location'] ?? '');
   $notes = trim($_POST['standard_notes'] ?? '');
   if ($name !== '') {
     if ($id > 0) {
       $stmt = $mysqli->prepare('UPDATE customers SET name=?, preferred_contractor_id=?, default_salesman=?, last_job_number=?, default_location=?, standard_notes=? WHERE id=?');
       if ($stmt) {
-        $stmt->bind_param('sisdssi', $name, $pref, $sales, $jobn, $loc, $notes, $id);
+        $stmt->bind_param('sisissi', $name, $pref, $sales, $jobn, $loc, $notes, $id);
         if (!$stmt->execute()) {
           $err = $stmt->error;
           error_log('DB execute failed: ' . $err);
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $uid = ulid();
       $stmt = $mysqli->prepare('INSERT INTO customers (uid, name, preferred_contractor_id, default_salesman, last_job_number, default_location, standard_notes) VALUES (?,?,?,?,?,?,?)');
       if ($stmt) {
-        $stmt->bind_param('ssisdss', $uid, $name, $pref, $sales, $jobn, $loc, $notes);
+        $stmt->bind_param('ssisiss', $uid, $name, $pref, $sales, $jobn, $loc, $notes);
         if (!$stmt->execute()) {
           $err = $stmt->error;
           error_log('DB execute failed: ' . $err);
