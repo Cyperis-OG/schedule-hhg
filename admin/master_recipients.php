@@ -54,7 +54,7 @@ if ($res) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Master Schedule Recipients</title>
-  <link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="admin.css" />
   <style>
     body { font-family:sans-serif; margin:0; background:#f5f5f5; }
     .container { max-width:800px; margin:0 auto; padding:20px; }
