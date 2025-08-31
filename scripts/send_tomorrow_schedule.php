@@ -7,6 +7,9 @@ require_once __DIR__ . '/../lib/email_helpers.php';
 // Populate this array with strings like 'person@example.com'.
 $extraCc = [];
 
+// Base URL for schedule links
+$baseUrl = rtrim(getenv('SCHEDULE_BASE_URL') ?: 'https://echo-gen.com/095/schedule-ng', '/');
+
 // Load active admin users to CC on every mail.
 $adminCc = [];
 $res = $mysqli->query("SELECT email FROM users WHERE role='admin' AND status='active'");
@@ -99,8 +102,8 @@ foreach ($targets as $i => $day) {
         $subject   = sprintf('Job Schedule for %s on %s', $contractor, $prettyDay);
         $message   = "Dear {$contractor},\n\nPlease click the button below to view your job schedule for {$prettyDay}.";
         $token     = magic_link_token($cid, $day);
-        $link      = sprintf('https://example.com/095/schedule-ng/view_contractor_schedule.php?contractor_id=%d&date=%s&tok=%s',
-            $cid, $day, $token);
+        $link      = sprintf('%s/view_contractor_schedule.php?contractor_id=%d&date=%s&tok=%s',
+            $baseUrl, $cid, $day, $token);
         $body      = generate_email_body($subject, $message, $link);
 
         send_email($emails, $subject, $body, $ccList);
@@ -112,8 +115,8 @@ foreach ($targets as $i => $day) {
         $prettyDay = $dt->format('l m/d/Y');
         $subject = sprintf('Master List of All Jobs on %s', $prettyDay);
         $message = "Please click the button below to view the master list of all jobs for {$prettyDay}.";
-        $link = sprintf('https://example.com/095/schedule-ng/view_contractor_schedule.php?contractor_id=master&date=%s&tok=%s',
-            $day, magic_link_token(0, $day));
+        $link = sprintf('%s/view_contractor_schedule.php?contractor_id=master&date=%s&tok=%s',
+            $baseUrl, $day, magic_link_token(0, $day));
         $body = generate_email_body($subject, $message, $link);
         send_email($masterRecipients, $subject, $body);
     }
