@@ -6,7 +6,8 @@
   const MAX_DAYS = 5;
   const BASE_PATH = '/095/schedule-ng';
   const API = {
-    saveJob: `${BASE_PATH}/api/job_save.php`
+    saveJob: `${BASE_PATH}/api/job_save.php`,
+    salesSearch: `${BASE_PATH}/api/salesmen_search.php`
   };
 
   const pad2  = (n) => (n < 10 ? '0' : '') + n;
@@ -88,7 +89,10 @@
 
           <div class="qa-row">
             <label>Salesman / Primary Contact</label>
-            <input name="job.salesman" type="text" placeholder="Optional" />
+            <div class="ac">
+              <input name="job.salesman" type="text" placeholder="Optional" autocomplete="off" />
+              <div class="ac-list"></div>
+            </div>
           </div>
           <div class="qa-row">
             <label>Job Number</label>
@@ -112,6 +116,28 @@
         </div>
       </form>
     `;
+
+    const salesInput = host.querySelector('input[name="job.salesman"]');
+    const salesList = salesInput?.parentElement.querySelector('.ac-list');
+    if (salesInput && salesList) {
+      let tId=null;
+      salesInput.addEventListener('input',()=>{
+        const q=salesInput.value.trim();
+        if(tId) clearTimeout(tId);
+        if(q.length<2){ salesList.style.display='none'; return; }
+        tId=setTimeout(async()=>{
+          const r=await fetch(`${API.salesSearch}?q=${encodeURIComponent(q)}`);
+          const j=await r.json(); salesList.innerHTML='';
+          (j.results||[]).forEach(item=>{
+            const it=document.createElement('div'); it.className='ac-item';
+            it.innerHTML=`<div><strong>${esc(item.name)}</strong> ${esc(item.phone||'')}</div>`;
+            it.addEventListener('click',()=>{ salesInput.value=`${item.name} ${item.phone||''}`.trim(); salesList.style.display='none'; });
+            salesList.appendChild(it);
+          });
+          salesList.style.display = salesList.children.length ? 'block':'none';
+        },220);
+      });
+    }
 
     // ---- per-day card ----
     function createDayCard(index, initial) {
@@ -228,6 +254,13 @@
         eh.value=t.h; em.value=t.m; eap.value=t.ap;
       }
       [sh,sm,sap].forEach(el=>el.addEventListener('input',syncEnd));
+
+      const tr=card.querySelector(`[name="day.${index}.tractors"]`);
+      const bob=card.querySelector(`[name="day.${index}.bobtails"]`);
+      const drv=card.querySelector(`[name="day.${index}.drivers"]`);
+      function syncDrv(){ if(drv) drv.value = (Number(tr?.value||0) + Number(bob?.value||0)); }
+      [tr,bob].forEach(el=>el&&el.addEventListener('input',syncDrv));
+      syncDrv();
 
       card.querySelector('[data-act="dup"]').addEventListener('click',()=>duplicateDay(index));
       card.querySelector('[data-act="del"]').addEventListener('click',()=>removeDay(index));
