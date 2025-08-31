@@ -37,6 +37,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $contractors = [];
 $resC = $mysqli->query('SELECT id, name FROM contractors ORDER BY name ASC');
 if ($resC) { while($r=$resC->fetch_assoc()) $contractors[]=$r; }
+
+$salesmen = [];
+$resS = $mysqli->query('SELECT name FROM salesmen ORDER BY name ASC');
+if ($resS) { while($r=$resS->fetch_assoc()) $salesmen[]=$r['name']; }
+
 $res = $mysqli->query('SELECT id, name, preferred_contractor_id, default_salesman, last_job_number, default_location, standard_notes FROM customers ORDER BY name ASC');
 $customers = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
 function contractorSelect($current, $contractors){
@@ -63,6 +68,11 @@ form.inline input,form.inline textarea,form.inline select{padding:4px}
 </head>
 <body>
 <h1>Customers</h1>
+<datalist id="salesmen-list">
+<?php foreach($salesmen as $s): ?>
+  <option value="<?= htmlspecialchars($s) ?>"></option>
+<?php endforeach; ?>
+</datalist>
 <table>
 <tr><th>Name</th><th>Preferred Contractor</th><th>Salesman</th><th>Job #</th><th>Location</th><th>Notes</th><th>Action</th></tr>
 <?php foreach($customers as $c): ?>
@@ -71,7 +81,7 @@ form.inline input,form.inline textarea,form.inline select{padding:4px}
 <input type="hidden" name="id" value="<?= (int)$c['id'] ?>" />
 <input type="text" name="name" value="<?= htmlspecialchars($c['name']) ?>" />
 <?= contractorSelect($c['preferred_contractor_id'], $contractors) ?>
-<input type="text" name="default_salesman" value="<?= htmlspecialchars($c['default_salesman']) ?>" />
+<input type="text" name="default_salesman" value="<?= htmlspecialchars($c['default_salesman']) ?>" list="salesmen-list" />
 <input type="text" name="last_job_number" value="<?= htmlspecialchars($c['last_job_number']) ?>" />
 <input type="text" name="default_location" value="<?= htmlspecialchars($c['default_location']) ?>" />
 <textarea name="standard_notes"><?= htmlspecialchars($c['standard_notes']) ?></textarea>
@@ -83,7 +93,7 @@ form.inline input,form.inline textarea,form.inline select{padding:4px}
 <form method="post" class="inline">
 <input type="text" name="name" placeholder="Customer name" />
 <?= contractorSelect(null, $contractors) ?>
-<input type="text" name="default_salesman" placeholder="Salesman" />
+<input type="text" name="default_salesman" placeholder="Salesman" list="salesmen-list" />
 <input type="text" name="last_job_number" placeholder="Job #" />
 <input type="text" name="default_location" placeholder="Typical location" />
 <textarea name="standard_notes" placeholder="Standard notes"></textarea>
