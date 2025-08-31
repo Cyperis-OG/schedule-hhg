@@ -20,51 +20,31 @@ if ($res) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Dashboard — Schedule NG</title>
+  <link rel="stylesheet" href="../assets/admin.css" />
   <style>
-    body { font-family: sans-serif; margin:0; background:#f5f5f5; }
-    .container { max-width: 900px; margin:0 auto; padding:20px; }
+    .container { max-width:900px; margin:0 auto; padding:20px; }
     h1 { text-align:center; margin-bottom:1.5rem; }
-    nav ul { list-style:none; padding:0; margin:0; display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; }
-    nav a { display:block; padding:1rem 1.5rem; background:#0069d9; color:#fff; border-radius:4px; text-decoration:none; }
-    nav a:hover { background:#0053ba; }
-    dialog { border:none; border-radius:8px; padding:1rem; max-width:400px; }
-    dialog::backdrop { background:rgba(0,0,0,0.3); }
-    dialog label { display:block; margin-top:1rem; }
-    dialog input, dialog select { width:100%; padding:0.5rem; margin-top:0.25rem; }
-    dialog .actions { margin-top:1rem; display:flex; gap:0.5rem; }
-    dialog button { flex:1; padding:0.5rem 1rem; }
-    .links { text-align:center; margin-top:2rem; }
-    .links a { color:#0069d9; text-decoration:none; margin:0 0.5rem; }
-    <?php if ($isMobile): ?>
-    nav ul { flex-direction:column; }
-    nav a { font-size:1.1rem; }
-    <?php else: ?>
-    nav a { font-size:1.2rem; }
-    <?php endif; ?>
-    @media (max-width:600px) {
-      nav ul { flex-direction:column; }
-      nav a { font-size:1.1rem; }
-      .container { padding:15px; }
-      dialog { width:100%; }
-    }
   </style>
 </head>
 <body class="<?= $isMobile ? 'mobile' : 'desktop' ?>">
+  <div class="admin-nav">
+    <a class="btn" href="index.php">Back to Admin Panel</a>
+    <a class="btn" href="../">Back to Schedule</a>
+    <a class="btn" href="../logout.php">Logout</a>
+  </div>
   <div class="container">
     <h1>Admin Dashboard</h1>
-    <nav>
-      <ul>
-        <li><a href="add_job.php">Add Job</a></li>
-        <li><a href="contractors.php">Contractors</a></li>
-        <li><a href="customers.php">Customers</a></li>
-        <li><a href="salesmen.php">Salesmen</a></li>
-        <li><a href="job_fields.php">Job Fields</a></li>
-        <li><a href="manual_email.php">Send Emails</a></li>
-        <li><a href="master_recipients.php">Admin Email Recipients</a></li>
-        <li><a href="#" id="openDaily">View Daily Schedule</a></li>
-        <li><a href="#" id="openRange">View Schedule Range</a></li>
-      </ul>
-    </nav>
+    <ul class="menu">
+      <li><a class="btn" href="add_job.php">Add Job</a><span class="desc">Create a new job with one or more days</span></li>
+      <li><a class="btn" href="contractors.php">Contractors</a><span class="desc">Manage contractor records and status</span></li>
+      <li><a class="btn" href="customers.php">Customers</a><span class="desc">View and edit customer details</span></li>
+      <li><a class="btn" href="salesmen.php">Salesmen</a><span class="desc">Maintain salesman contact info</span></li>
+      <li><a class="btn" href="job_fields.php">Job Fields</a><span class="desc">Configure per-day job fields</span></li>
+      <li><a class="btn" href="manual_email.php">Send Emails</a><span class="desc">Email schedules to contractors</span></li>
+      <li><a class="btn" href="master_recipients.php">Admin Email Recipients</a><span class="desc">Manage admin recipient list</span></li>
+      <li><a class="btn" href="#" id="openDaily">View Daily Schedule</a><span class="desc">Open a contractor's daily schedule</span></li>
+      <li><a class="btn" href="#" id="openRange">View Schedule Range</a><span class="desc">View schedules across dates</span></li>
+    </ul>
 
     <dialog id="dailyModal">
       <form method="get" action="../view_contractor_schedule.php">
@@ -80,8 +60,8 @@ if ($res) {
           <input type="date" name="date" value="<?= date('Y-m-d') ?>" required />
         </label>
         <div class="actions">
-          <button type="submit">View</button>
-          <button type="button" onclick="this.closest('dialog').close()">Cancel</button>
+          <button type="submit" class="btn">View</button>
+          <button type="button" class="btn" onclick="this.closest('dialog').close()">Cancel</button>
         </div>
       </form>
     </dialog>
@@ -103,15 +83,11 @@ if ($res) {
           <input type="date" name="end_date" value="<?= date('Y-m-d') ?>" required />
         </label>
         <div class="actions">
-          <button type="submit">View</button>
-          <button type="button" onclick="this.closest('dialog').close()">Cancel</button>
+          <button type="submit" class="btn">View</button>
+          <button type="button" class="btn" onclick="this.closest('dialog').close()">Cancel</button>
         </div>
       </form>
     </dialog>
-
-    <div class="links">
-      <a href="../">Back to Schedule</a> | <a href="../logout.php">Logout</a>
-    </div>
   </div>
 
   <script>
