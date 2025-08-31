@@ -56,6 +56,8 @@ if ($res) {
       <ul>
         <li><a href="add_job.php">Add Job</a></li>
         <li><a href="contractors.php">Contractors</a></li>
+        <li><a href="customers.php">Customers</a></li>
+        <li><a href="salesmen.php">Salesmen</a></li>
         <li><a href="job_fields.php">Job Fields</a></li>
         <li><a href="manual_email.php">Send Emails</a></li>
         <li><a href="master_recipients.php">Admin Email Recipients</a></li>
