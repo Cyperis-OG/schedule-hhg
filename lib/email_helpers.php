@@ -43,12 +43,12 @@ HTML;
  *   - $email_username (string) email address used in the From header
  */
 function send_email(array $toEmails, string $subject, string $body, array $ccEmails = [], ?callable $logger = null): bool {
-    global $smtpHost, $smtpPort, $smtpUser, $smtpPass, $smtpSecure, $email_username;
+    global $smtpHost, $smtpPort, $smtpUser, $smtpPass, $smtpSecure, $email_username, $email_password;
 
     $host     = $smtpHost   ?? 'localhost';
     $port     = $smtpPort   ?? 25;
-    $username = $smtpUser   ?? '';
-    $password = $smtpPass   ?? '';
+    $username = $smtpUser   ?? ($email_username ?? '');
+    $password = $smtpPass   ?? ($email_password ?? '');
     $from     = $email_username ?? $smtpUser ?? '';
     $scheme   = $smtpSecure ? $smtpSecure . '://' : '';
 
@@ -68,7 +68,19 @@ function send_email(array $toEmails, string $subject, string $body, array $ccEma
                 break;
             }
         }
-        return $data;
+        return trim($data);
+    };
+
+    $expect = function (array $codes) use ($read, $logger) {
+        $response = $read();
+        $code = (int)substr($response, 0, 3);
+        if (!in_array($code, $codes, true)) {
+            if ($logger) {
+                $logger('send_email error=unexpected response: ' . $response);
+            }
+            return false;
+        }
+        return true;
     };
 
     $write = function (string $cmd) use ($socket) {
@@ -76,32 +88,38 @@ function send_email(array $toEmails, string $subject, string $body, array $ccEma
     };
 
     // Initial greeting
-    $read();
+    if (!$expect([220])) {
+        fclose($socket);
+        return false;
+    }
     $write('EHLO ' . $host);
-    $read();
+    if (!$expect([250])) {
+        fclose($socket);
+        return false;
+    }
 
     // Authenticate if credentials provided
     if ($username !== '' && $password !== '') {
         $write('AUTH LOGIN');
-        $read();
+        if (!$expect([334])) { fclose($socket); return false; }
         $write(base64_encode($username));
-        $read();
+        if (!$expect([334])) { fclose($socket); return false; }
         $write(base64_encode($password));
-        $read();
+        if (!$expect([235])) { fclose($socket); return false; }
     }
 
     $write('MAIL FROM:<'.$from.'>');
-    $read();
+    if (!$expect([250])) { fclose($socket); return false; }
     foreach ($toEmails as $to) {
         $write('RCPT TO:<'.$to.'>');
-        $read();
+        if (!$expect([250, 251])) { fclose($socket); return false; }
     }
     foreach ($ccEmails as $cc) {
         $write('RCPT TO:<'.$cc.'>');
-        $read();
+        if (!$expect([250, 251])) { fclose($socket); return false; }
     }
     $write('DATA');
-    $read();
+    if (!$expect([354])) { fclose($socket); return false; }
 
     $headers  = 'From: ' . $from . "\r\n";
     $headers .= 'To: ' . implode(',', $toEmails) . "\r\n";
@@ -112,8 +130,8 @@ function send_email(array $toEmails, string $subject, string $body, array $ccEma
     $headers .= "Content-type: text/html; charset=UTF-8\r\n";
     $headers .= 'Subject: ' . $subject . "\r\n\r\n";
 
-    $write($headers . $body . "\r\n.");
-    $read();
+    $write($headers . $body . "\r\n.\r\n");
+    if (!$expect([250])) { fclose($socket); return false; }
     $write('QUIT');
     fclose($socket);
 
