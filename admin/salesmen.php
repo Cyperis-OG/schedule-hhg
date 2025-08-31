@@ -42,7 +42,7 @@ $salesmen = $res ? $res->fetch_all(MYSQLI_ASSOC) : [];
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Salesmen Admin</title>
-<link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="admin.css" />
 <style>
 body{font-family:sans-serif;margin:20px;background:#f6f7fb;color:#0f172a}
 table{border-collapse:collapse;width:100%;background:#fff}
