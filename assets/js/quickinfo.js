@@ -61,6 +61,25 @@
     return f?.name || "—";
   };
 
+  const EDIT_SCRIPT = (CFG.BASE_PATH ? `${CFG.BASE_PATH}/assets/js/editjob.js` : './assets/js/editjob.js');
+  function ensureEditModule() {
+    return new Promise((resolve, reject) => {
+      if (window.editJob) { resolve(); return; }
+      const s = document.createElement('script');
+      s.src = EDIT_SCRIPT;
+      s.onload = () => {
+        if (window.editJob) {
+          console.log('[quickinfo] edit module loaded');
+          resolve();
+        } else {
+          reject(new Error('edit module script loaded but window.editJob missing'));
+        }
+      };
+      s.onerror = () => reject(new Error('Failed to load edit module script'));
+      document.head.appendChild(s);
+    });
+  }
+
   let infoDlg = null;
 
   function closeInfo() {
@@ -90,7 +109,7 @@
 
     const adminBtns = IS_ADMIN ? `
         <button class="qi-btn"        data-act="copy">Copy</button>
-        ${window.editJob ? '<button class="qi-btn"        data-act="edit">Edit/View Details</button>' : ''}
+        <button class="qi-btn"        data-act="edit">Edit/View Details</button>
         <button class="qi-btn danger" data-act="delete">Delete</button>
     ` : '';
 
@@ -129,22 +148,27 @@
         <button class="qi-btn primary"data-act="close">Close</button>
       </div>
     `;
-
     // Wire buttons (close always; others only for admin)
     host.querySelector('[data-act="close"]')?.addEventListener('click', () => closeInfo());
     if (IS_ADMIN) {
-      if (window.editJob) {
-        host.querySelector('[data-act="edit"]')?.addEventListener('click', () => {
-          // Close first (this was causing your ReferenceError)
+      const editBtn = host.querySelector('[data-act="edit"]');
+      if (editBtn) {
+        editBtn.addEventListener('click', async () => {
           closeInfo();
-          // Then open the full editor if available
-          const dayUid = ev.Id || ev.day_uid || ev.DayUID;
-          if (window.editJob?.openByDayId && dayUid) {
-            window.editJob.openByDayId(dayUid);
-          } else if (window.editJob?.openByJobId && (ev.JobId || ev.job_id)) {
-            window.editJob.openByJobId(ev.JobId || ev.job_id);
-          } else {
-            alert('Edit module is not loaded.');
+          try {
+            await ensureEditModule();
+            const dayUid = ev.Id || ev.day_uid || ev.DayUID;
+            if (window.editJob?.openByDayId && dayUid) {
+              window.editJob.openByDayId(dayUid);
+            } else if (window.editJob?.openByJobId && (ev.JobId || ev.job_id)) {
+              window.editJob.openByJobId(ev.JobId || ev.job_id);
+            } else {
+              console.error('[quickinfo] edit module missing methods', window.editJob);
+              alert('Edit module is not loaded.');
+            }
+          } catch (e) {
+            console.error(e);
+            alert('Edit module failed to load.');
           }
         });
       }
