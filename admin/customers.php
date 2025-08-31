@@ -4,6 +4,9 @@ require_once __DIR__ . '/../lib/ids.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
+// Basic user-agent check to detect mobile devices
+$isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
+
 // handle add/update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $id = (int)($_POST['id'] ?? 0);
@@ -76,16 +79,23 @@ function contractorSelect($current, $contractors){
 <html lang="en">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Customers Admin</title>
+<link rel="stylesheet" href="../assets/admin.css" />
 <style>
 body{font-family:sans-serif;margin:20px;background:#f6f7fb;color:#0f172a}
 table{border-collapse:collapse;width:100%;background:#fff}
 th,td{border:1px solid #e5e7eb;padding:8px;vertical-align:top}
 form.inline{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 form.inline input,form.inline textarea,form.inline select{padding:4px}
+@media(max-width:600px){form.inline{flex-direction:column;align-items:stretch}}
 </style>
 </head>
-<body>
+<body class="<?= $isMobile ? 'mobile' : 'desktop' ?>">
+<div class="admin-nav">
+  <a class="btn" href="index.php">Back to Admin Panel</a>
+  <a class="btn" href="../">Back to Schedule</a>
+</div>
 <h1>Customers</h1>
 <datalist id="salesmen-list">
 <?php foreach($salesmen as $s): ?>
@@ -104,7 +114,7 @@ form.inline input,form.inline textarea,form.inline select{padding:4px}
 <input type="text" name="last_job_number" value="<?= htmlspecialchars($c['last_job_number']) ?>" />
 <input type="text" name="default_location" value="<?= htmlspecialchars($c['default_location']) ?>" />
 <textarea name="standard_notes"><?= htmlspecialchars($c['standard_notes']) ?></textarea>
-<button type="submit">Save</button>
+<button type="submit" class="btn">Save</button>
 </form>
 </td></tr>
 <?php endforeach; ?>
@@ -116,7 +126,7 @@ form.inline input,form.inline textarea,form.inline select{padding:4px}
 <input type="text" name="last_job_number" placeholder="Job #" />
 <input type="text" name="default_location" placeholder="Typical location" />
 <textarea name="standard_notes" placeholder="Standard notes"></textarea>
-<button type="submit">Add</button>
+<button type="submit" class="btn">Add</button>
 </form>
 </td></tr>
 </table>
