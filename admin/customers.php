@@ -18,6 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       if ($stmt) {
         $stmt->bind_param('sissssi', $name, $pref, $sales, $jobn, $loc, $notes, $id);
         $stmt->execute();
+        if ($stmt->error) {
+          error_log('DB execute failed: ' . $stmt->error);
+        }
       } else {
         error_log('DB prepare failed: ' . $mysqli->error);
       }
@@ -26,6 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       if ($stmt) {
         $stmt->bind_param('sissss', $name, $pref, $sales, $jobn, $loc, $notes);
         $stmt->execute();
+        if ($stmt->error) {
+          error_log('DB execute failed: ' . $stmt->error);
+        }
       } else {
         error_log('DB prepare failed: ' . $mysqli->error);
       }
