@@ -40,16 +40,19 @@ if ($dayFieldsJson === false) $dayFieldsJson = '[]';
 <body>
   <header class="topbar">
     <div class="brand">Schedule NG</div>
-    <?php if ($isAdmin): ?>
-      <label class="switch">
-        <input type="checkbox" id="dragToggle" checked>
-        <span class="slider round">Drag &amp; Drop</span>
-      </label>
-      <a href="./admin/">Admin</a>
-      <a href="logout.php">Logout</a>
-    <?php else: ?>
-      <a href="login.php">Admin Login</a>
-    <?php endif; ?>
+    <div class="actions">
+      <?php if ($isAdmin): ?>
+        <label class="switch dnd-toggle">
+          <input type="checkbox" id="dragToggle" checked>
+          <span class="slider round">Drag &amp; Drop</span>
+        </label>
+        <a class="btn sm" href="./admin/">Admin</a>
+        <button class="btn sm" type="button" onclick="window.open('./view_contractor_schedule.php?contractor_id=master&date=' + encodeURIComponent(window.getViewYMD ? window.getViewYMD() : '<?= $initDate ?>'), '_blank')">Master List</button>
+        <a class="btn sm" href="logout.php">Logout</a>
+      <?php else: ?>
+        <a class="btn sm" href="login.php">Admin Login</a>
+      <?php endif; ?>
+    </div>
   </header>
 
   <div id="Schedule"></div>
