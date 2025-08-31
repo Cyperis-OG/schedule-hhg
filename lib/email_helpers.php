@@ -1,6 +1,17 @@
 <?php
 // lib/email_helpers.php
-// Simple helpers for generating HTML emails and sending via PHP's mail().
+// Helpers for generating HTML emails and sending via PHPMailer over SMTP.
+
+$autoload = __DIR__ . '/../vendor/autoload.php';
+if (!file_exists($autoload)) {
+    $autoload = __DIR__ . '/../../vendor/autoload.php';
+}
+if (file_exists($autoload)) {
+    require_once $autoload;
+}
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 function generate_email_body(string $title, string $message, string $link): string {
     $msg = nl2br(htmlspecialchars($message));
@@ -32,111 +43,53 @@ HTML;
 }
 
 /**
- * Send an HTML email using basic SMTP authentication. Connection details are
- * expected to be defined in `/home/freeman/job_scheduler.php`, which is
- * included across the application. Variables used:
+ * Send an HTML email using PHPMailer. Connection details are expected to be
+ * defined in `/home/freeman/job_scheduler.php`, which is included across the
+ * application. Variables used:
  *   - $smtpHost   (string) hostname of SMTP server
- *   - $smtpPort   (int)    port number (default 25)
+ *   - $smtpPort   (int)    port number
  *   - $smtpUser   (string) SMTP username
  *   - $smtpPass   (string) SMTP password
- *   - $smtpSecure (string) optional "ssl" or "tls" to prefix the host
- *   - $email_username (string) email address used in the From header
+ *   - $smtpSecure (string) "ssl" or "tls" (defaults to tls)
+ *   - $email_username (string) default From address
  */
 function send_email(array $toEmails, string $subject, string $body, array $ccEmails = [], ?callable $logger = null): bool {
     global $smtpHost, $smtpPort, $smtpUser, $smtpPass, $smtpSecure, $email_username, $email_password;
 
-    $host     = $smtpHost   ?? 'localhost';
-    $port     = $smtpPort   ?? 25;
-    $username = $smtpUser   ?? ($email_username ?? '');
-    $password = $smtpPass   ?? ($email_password ?? '');
-    $from     = $email_username ?? $smtpUser ?? '';
-    $scheme   = $smtpSecure ? $smtpSecure . '://' : '';
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host       = $smtpHost   ?? 'smtp.ionos.com';
+        $mail->Port       = $smtpPort   ?? 587;
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $smtpUser   ?? ($email_username ?? '');
+        $mail->Password   = $smtpPass   ?? ($email_password ?? '');
+        $secure           = strtolower($smtpSecure ?? 'tls');
+        $mail->SMTPSecure = ($secure === 'ssl') ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
 
-    $socket = @fsockopen($scheme . $host, $port, $errno, $errstr, 30);
-    if (!$socket) {
+        $from = $email_username ?? $smtpUser ?? 'no-reply@example.com';
+        $mail->setFrom($from, 'Armstrong Scheduler');
+
+        foreach ($toEmails as $email) {
+            $mail->addAddress($email);
+        }
+        foreach ($ccEmails as $cc) {
+            $mail->addCC($cc);
+        }
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
+
         if ($logger) {
-            $logger('send_email error=connection failed: ' . $errstr);
-        }
-        return false;
-    }
-
-    $read = function () use ($socket) {
-        $data = '';
-        while ($str = fgets($socket, 515)) {
-            $data .= $str;
-            if (substr($str, 3, 1) === ' ') {
-                break;
-            }
-        }
-        return trim($data);
-    };
-
-    $expect = function (array $codes) use ($read, $logger) {
-        $response = $read();
-        $code = (int)substr($response, 0, 3);
-        if (!in_array($code, $codes, true)) {
-            if ($logger) {
-                $logger('send_email error=unexpected response: ' . $response);
-            }
-            return false;
+            $logger('send_email to=' . implode(',', $toEmails) . '; subject=' . $subject . '; cc=' . implode(',', $ccEmails) . '; result=success');
         }
         return true;
-    };
-
-    $write = function (string $cmd) use ($socket) {
-        fwrite($socket, $cmd . "\r\n");
-    };
-
-    // Initial greeting
-    if (!$expect([220])) {
-        fclose($socket);
+    } catch (Exception $e) {
+        if ($logger) {
+            $logger('send_email error=' . $e->getMessage());
+        }
         return false;
     }
-    $write('EHLO ' . $host);
-    if (!$expect([250])) {
-        fclose($socket);
-        return false;
-    }
-
-    // Authenticate if credentials provided
-    if ($username !== '' && $password !== '') {
-        $write('AUTH LOGIN');
-        if (!$expect([334])) { fclose($socket); return false; }
-        $write(base64_encode($username));
-        if (!$expect([334])) { fclose($socket); return false; }
-        $write(base64_encode($password));
-        if (!$expect([235])) { fclose($socket); return false; }
-    }
-
-    $write('MAIL FROM:<'.$from.'>');
-    if (!$expect([250])) { fclose($socket); return false; }
-    foreach ($toEmails as $to) {
-        $write('RCPT TO:<'.$to.'>');
-        if (!$expect([250, 251])) { fclose($socket); return false; }
-    }
-    foreach ($ccEmails as $cc) {
-        $write('RCPT TO:<'.$cc.'>');
-        if (!$expect([250, 251])) { fclose($socket); return false; }
-    }
-    $write('DATA');
-    if (!$expect([354])) { fclose($socket); return false; }
-
-    $headers  = 'From: ' . $from . "\r\n";
-    $headers .= 'To: ' . implode(',', $toEmails) . "\r\n";
-    if ($ccEmails) {
-        $headers .= 'Cc: ' . implode(',', $ccEmails) . "\r\n";
-    }
-    $headers .= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-    $headers .= 'Subject: ' . $subject . "\r\n\r\n";
-
-    $write($headers . $body . "\r\n.\r\n");
-    if (!$expect([250])) { fclose($socket); return false; }
-    $write('QUIT');
-    fclose($socket);
-
-    if ($logger) {
-        $logger('send_email to=' . implode(',', $toEmails) . '; subject=' . $subject . '; cc=' . implode(',', $ccEmails) . '; result=success');
-    }
-    return true;
 }
