@@ -3,6 +3,7 @@ include '/home/freeman/job_scheduler.php';
 date_default_timezone_set('America/Chicago');
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
+$isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
 $date = $_GET['date'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) $date = date('Y-m-d');
 $prev = date('Y-m-d', strtotime($date.' -1 day'));
@@ -46,6 +47,7 @@ function listAttachments($uid){
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Schedule</title>
+  <link rel="stylesheet" href="../assets/admin.css" />
   <style>
     body { font-family:sans-serif; padding:10px; }
     .nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
@@ -62,7 +64,11 @@ function listAttachments($uid){
     .job-details { padding:10px; background:#f0f0f0; border-radius:8px; }
   </style>
 </head>
-<body>
+<body class="<?= $isMobile ? 'mobile' : 'desktop' ?>">
+  <div class="admin-nav">
+    <a class="btn" href="index.php">Back to Admin Panel</a>
+    <a class="btn" href="../">Back to Schedule</a>
+  </div>
   <div class="nav">
     <a href="mobile_schedule.php?date=<?= $prev ?>">&lt; Prev Day</a>
     <span class="date"><?= date('m/d/Y', strtotime($date)) ?></span>
