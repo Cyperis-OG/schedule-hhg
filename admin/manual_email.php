@@ -5,6 +5,9 @@ require_once __DIR__ . '/../lib/email_helpers.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
+// Basic user-agent check to detect mobile devices
+$isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
+
 $baseUrl = rtrim(getenv('SCHEDULE_BASE_URL') ?: 'https://echo-gen.com/095/schedule-ng', '/');
 
 // ----------------------------------------------------------------------
@@ -101,6 +104,7 @@ if ($date) {
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Send Schedule Emails</title>
+<link rel="stylesheet" href="../assets/admin.css" />
 <style>
  body { font-family:sans-serif; margin:0; background:#f5f5f5; }
  .container { max-width:800px; margin:0 auto; padding:20px; }
@@ -110,14 +114,18 @@ if ($date) {
  button { margin-top:1rem; padding:0.5rem 1rem; }
 </style>
 </head>
-<body>
+<body class="<?= $isMobile ? 'mobile' : 'desktop' ?>">
+<div class="admin-nav">
+  <a class="btn" href="index.php">Back to Admin Panel</a>
+  <a class="btn" href="../">Back to Schedule</a>
+</div>
 <div class="container">
 <h1>Send Schedule Emails</h1>
 <form method="get">
   <label>Select Date:
     <input type="date" name="date" value="<?= htmlspecialchars($date) ?>" required>
   </label>
-  <button type="submit">Load</button>
+  <button type="submit" class="btn">Load</button>
 </form>
 
 <?php if (!empty($contractors)): ?>
@@ -130,7 +138,7 @@ if ($date) {
     <?php endforeach; ?>
   </fieldset>
   <label><input type="checkbox" name="send_master" checked> Send master schedule</label>
-  <button type="submit">Send Emails</button>
+  <button type="submit" class="btn">Send Emails</button>
 </form>
 <?php endif; ?>
 
