@@ -7,8 +7,8 @@ require_once __DIR__ . '/../lib/email_helpers.php';
 // Populate this array with strings like 'person@example.com'.
 $extraCc = [];
 
-// Base URL for schedule links
-$baseUrl = rtrim(getenv('SCHEDULE_BASE_URL') ?: 'https://echo-gen.com/095/schedule-ng', '/');
+// Base URL for schedule links␊
+$baseUrl = rtrim(getenv('SCHEDULE_BASE_URL') ?: 'https://armstrong-scheduler.com/095/schedule-ng', '/');
 
 // Load active admin users to CC on every mail.
 $adminCc = [];
