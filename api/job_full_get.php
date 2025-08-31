@@ -6,6 +6,12 @@ header('Content-Type: application/json; charset=utf-8');
 ini_set('display_errors', '0');
 
 require_once '/home/freeman/job_scheduler.php';  // <— absolute path
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+if (($_SESSION['role'] ?? '') !== 'admin') {
+  http_response_code(403);
+  echo json_encode(['ok' => false, 'error' => 'forbidden']);
+  exit;
+}
 
 // use job UID for lookups; resolve via day UID if needed
 $jobUid     = isset($_GET['job']) ? preg_replace('/[^a-fA-F0-9]/', '', $_GET['job']) : null;
