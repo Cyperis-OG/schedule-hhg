@@ -5,6 +5,8 @@ require_once __DIR__ . '/../lib/email_helpers.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
+$baseUrl = rtrim(getenv('SCHEDULE_BASE_URL') ?: 'https://echo-gen.com/095/schedule-ng', '/');
+
 // ----------------------------------------------------------------------
 // Simple file logger for troubleshooting email sending
 // ----------------------------------------------------------------------
@@ -58,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pretty = $dt->format('l m/d/Y');
             $subject = "Job Schedule for {$contractor} on {$pretty}";
             $message = "Dear {$contractor},\n\nPlease click the button below to view your job schedule for {$pretty}.";
-            $link = sprintf('https://example.com/095/schedule-ng/view_contractor_schedule.php?contractor_id=%d&date=%s&tok=%s',
-                $cid, $date, magic_link_token($cid, $date));
+            $link = sprintf('%s/view_contractor_schedule.php?contractor_id=%d&date=%s&tok=%s',
+                $baseUrl, $cid, $date, magic_link_token($cid, $date));
             $body = generate_email_body($subject, $message, $link);
             manual_email_log('Sending to contractor id=' . $cid . ' emails=' . implode(',', $emails));
             $result = send_email($emails, $subject, $body, [], 'manual_email_log');
@@ -71,8 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pretty = $dt->format('l m/d/Y');
             $subject = "Master List of All Jobs on {$pretty}";
             $message = "Please click the button below to view the master list of all jobs for {$pretty}.";
-            $link = sprintf('https://example.com/095/schedule-ng/view_contractor_schedule.php?contractor_id=master&date=%s&tok=%s',
-                $date, magic_link_token(0, $date));
+            $link = sprintf('%s/view_contractor_schedule.php?contractor_id=master&date=%s&tok=%s',
+                $baseUrl, $date, magic_link_token(0, $date));
             $body = generate_email_body($subject, $message, $link);
             manual_email_log('Sending master list to: ' . implode(',', $masterRecipients));
             $result = send_email($masterRecipients, $subject, $body, [], 'manual_email_log');
