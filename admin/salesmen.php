@@ -11,12 +11,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($name !== '') {
     if ($id > 0) {
       $stmt = $mysqli->prepare('UPDATE salesmen SET name=?, phone=? WHERE id=?');
-      $stmt->bind_param('ssi', $name, $phone, $id);
-      $stmt->execute();
+      if ($stmt) {
+        $stmt->bind_param('ssi', $name, $phone, $id);
+        $stmt->execute();
+      } else {
+        error_log('DB prepare failed: ' . $mysqli->error);
+      }
     } else {
       $stmt = $mysqli->prepare('INSERT INTO salesmen (name, phone) VALUES (?, ?)');
-      $stmt->bind_param('ss', $name, $phone);
-      $stmt->execute();
+      if ($stmt) {
+        $stmt->bind_param('ss', $name, $phone);
+        $stmt->execute();
+      } else {
+        error_log('DB prepare failed: ' . $mysqli->error);
+      }
     }
   }
   header('Location: salesmen.php'); exit;
