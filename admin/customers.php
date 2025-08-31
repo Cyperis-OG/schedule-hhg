@@ -15,12 +15,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($name !== '') {
     if ($id > 0) {
       $stmt = $mysqli->prepare('UPDATE customers SET name=?, preferred_contractor_id=?, default_salesman=?, last_job_number=?, default_location=?, standard_notes=? WHERE id=?');
-      $stmt->bind_param('sissssi', $name, $pref, $sales, $jobn, $loc, $notes, $id);
-      $stmt->execute();
+      if ($stmt) {
+        $stmt->bind_param('sissssi', $name, $pref, $sales, $jobn, $loc, $notes, $id);
+        $stmt->execute();
+      } else {
+        error_log('DB prepare failed: ' . $mysqli->error);
+      }
     } else {
       $stmt = $mysqli->prepare('INSERT INTO customers (name, preferred_contractor_id, default_salesman, last_job_number, default_location, standard_notes) VALUES (?,?,?,?,?,?)');
-      $stmt->bind_param('sissss', $name, $pref, $sales, $jobn, $loc, $notes);
-      $stmt->execute();
+      if ($stmt) {
+        $stmt->bind_param('sissss', $name, $pref, $sales, $jobn, $loc, $notes);
+        $stmt->execute();
+      } else {
+        error_log('DB prepare failed: ' . $mysqli->error);
+      }
     }
   }
   header('Location: customers.php'); exit;
