@@ -17,6 +17,9 @@ include '/home/freeman/job_scheduler.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
+// Basic user-agent check to detect mobile devices
+$isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
+
 // Load the template JSON
 $templatePath = __DIR__ . '/../config/job_form_template.json';
 $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : '{}';
@@ -31,6 +34,7 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
   <meta charset="utf-8"/>
   <title>Add Job — Schedule NG</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" href="../assets/admin.css" />
 
   <style>
     :root{
@@ -86,7 +90,11 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
     .embed .toolbar .back-btn{ display:none } /* hide "Back to Schedule" in modal */
   </style>
 </head>
-<body>
+<body class="<?= $isMobile ? 'mobile' : 'desktop' ?>">
+  <div class="admin-nav">
+    <a class="btn" href="index.php">Back to Admin Panel</a>
+    <a class="btn" href="../">Back to Schedule</a>
+  </div>
   <div class="wrap">
     <div class="toolbar">
       <div class="title">
