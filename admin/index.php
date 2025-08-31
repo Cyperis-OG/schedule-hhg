@@ -20,7 +20,7 @@ if ($res) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Dashboard — Schedule NG</title>
-  <link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="admin.css" />
   <style>
     .container { max-width:900px; margin:0 auto; padding:20px; }
     h1 { text-align:center; margin-bottom:1.5rem; }
