@@ -30,3 +30,41 @@ uploads/
 
 # ✅ If this contains your Syncfusion license, keep it out of Git
 includes/syncfusion_cdn.php
+# Common junk
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# PHP / web
+vendor/
+node_modules/
+.cache/
+dist/
+build/
+.idea/
+.vscode/
+.env
+.env.*
+
+# System
+Thumbs.db
+# Common junk
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# PHP / web
+vendor/
+node_modules/
+.cache/
+dist/
+build/
+.idea/
+.vscode/
+.env
+.env.*
+
+# System
+Thumbs.db
