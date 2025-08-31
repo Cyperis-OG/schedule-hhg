@@ -3,6 +3,9 @@ include '/home/freeman/job_scheduler.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
+// Basic user-agent check to detect mobile devices
+$isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
+
 $cfgPath = __DIR__ . '/../config/day_fields.json';
 $fields = [];
 if (file_exists($cfgPath)) {
@@ -33,9 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Job Fields — Schedule NG</title>
+  <link rel="stylesheet" href="../assets/admin.css" />
   <style>
-    table{border-collapse:collapse}
+    table{border-collapse:collapse;width:100%;background:#fff}
     td,th{border:1px solid #ccc;padding:4px 8px}
     input[type="text"]{width:160px}
   </style>
@@ -51,7 +56,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   </script>
 </head>
-<body>
+<body class="<?= $isMobile ? 'mobile' : 'desktop' ?>">
+  <div class="admin-nav">
+    <a class="btn" href="index.php">Back to Admin Panel</a>
+    <a class="btn" href="../">Back to Schedule</a>
+  </div>
   <h1>Manage Job Day Fields</h1>
   <form method="post">
     <table>
@@ -67,10 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </tbody>
     </table>
     <p>
-      <button type="button" onclick="addRow()">Add Field</button>
-      <button type="submit">Save</button>
+      <button type="button" class="btn" onclick="addRow()">Add Field</button>
+      <button type="submit" class="btn">Save</button>
     </p>
   </form>
-  <p><a href="./">Back to Admin</a></p>
 </body>
 </html>
