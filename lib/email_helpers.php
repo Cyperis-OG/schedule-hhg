@@ -31,16 +31,94 @@ function generate_email_body(string $title, string $message, string $link): stri
 HTML;
 }
 
+/**
+ * Send an HTML email using basic SMTP authentication. Connection details are
+ * expected to be defined in `/home/freeman/job_scheduler.php`, which is
+ * included across the application. Variables used:
+ *   - $smtpHost   (string) hostname of SMTP server
+ *   - $smtpPort   (int)    port number (default 25)
+ *   - $smtpUser   (string) SMTP username
+ *   - $smtpPass   (string) SMTP password
+ *   - $smtpSecure (string) optional "ssl" or "tls" to prefix the host
+ *   - $email_username (string) email address used in the From header
+ */
 function send_email(array $toEmails, string $subject, string $body, array $ccEmails = [], ?callable $logger = null): bool {
-    $to       = implode(',', $toEmails);
-    $headers  = "MIME-Version: 1.0\r\n";
-    $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+    global $smtpHost, $smtpPort, $smtpUser, $smtpPass, $smtpSecure, $email_username;
+
+    $host     = $smtpHost   ?? 'localhost';
+    $port     = $smtpPort   ?? 25;
+    $username = $smtpUser   ?? '';
+    $password = $smtpPass   ?? '';
+    $from     = $email_username ?? $smtpUser ?? '';
+    $scheme   = $smtpSecure ? $smtpSecure . '://' : '';
+
+    $socket = @fsockopen($scheme . $host, $port, $errno, $errstr, 30);
+    if (!$socket) {
+        if ($logger) {
+            $logger('send_email error=connection failed: ' . $errstr);
+        }
+        return false;
+    }
+
+    $read = function () use ($socket) {
+        $data = '';
+        while ($str = fgets($socket, 515)) {
+            $data .= $str;
+            if (substr($str, 3, 1) === ' ') {
+                break;
+            }
+        }
+        return $data;
+    };
+
+    $write = function (string $cmd) use ($socket) {
+        fwrite($socket, $cmd . "\r\n");
+    };
+
+    // Initial greeting
+    $read();
+    $write('EHLO ' . $host);
+    $read();
+
+    // Authenticate if credentials provided
+    if ($username !== '' && $password !== '') {
+        $write('AUTH LOGIN');
+        $read();
+        $write(base64_encode($username));
+        $read();
+        $write(base64_encode($password));
+        $read();
+    }
+
+    $write('MAIL FROM:<'.$from.'>');
+    $read();
+    foreach ($toEmails as $to) {
+        $write('RCPT TO:<'.$to.'>');
+        $read();
+    }
+    foreach ($ccEmails as $cc) {
+        $write('RCPT TO:<'.$cc.'>');
+        $read();
+    }
+    $write('DATA');
+    $read();
+
+    $headers  = 'From: ' . $from . "\r\n";
+    $headers .= 'To: ' . implode(',', $toEmails) . "\r\n";
     if ($ccEmails) {
         $headers .= 'Cc: ' . implode(',', $ccEmails) . "\r\n";
     }
-    $result = mail($to, $subject, $body, $headers);
+    $headers .= "MIME-Version: 1.0\r\n";
+    $headers .= "Content-type: text/html; charset=UTF-8\r\n";
+    $headers .= 'Subject: ' . $subject . "\r\n\r\n";
+
+    $write($headers . $body . "\r\n.");
+    $read();
+    $write('QUIT');
+    fclose($socket);
+
     if ($logger) {
-        $logger('send_email to=' . $to . '; subject=' . $subject . '; cc=' . implode(',', $ccEmails) . '; result=' . ($result ? 'success' : 'failure'));
+        $logger('send_email to=' . implode(',', $toEmails) . '; subject=' . $subject . '; cc=' . implode(',', $ccEmails) . '; result=success');
     }
-    return $result;
+    return true;
 }
