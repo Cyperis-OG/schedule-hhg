@@ -1,0 +1,11 @@
+body{font-family:sans-serif;margin:0;background:#f5f5f5;color:#0f172a}
+.admin-nav{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;background:#e9ecef;padding:1rem 0}
+.btn{display:inline-block;padding:.5rem 1rem;background:#0069d9;color:#fff;text-decoration:none;border-radius:4px;border:1px solid #0053ba;cursor:pointer}
+.btn:hover{background:#0053ba}
+.menu{list-style:none;padding:0;margin:0}
+.menu li{display:flex;align-items:center;margin-bottom:1rem}
+.menu .desc{margin-left:1rem;color:#333}
+@media(max-width:600px){.menu li{flex-direction:column;align-items:flex-start}.menu .desc{margin-left:0;margin-top:.5rem}}
+dialog{border:none;border-radius:8px;padding:1rem}
+dialog::backdrop{background:rgba(0,0,0,.3)}
+dialog .actions{display:flex;gap:.5rem;margin-top:1rem}
