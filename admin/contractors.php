@@ -31,7 +31,7 @@ $isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_A
   <meta charset="utf-8" />
   <title>Contractors — Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="admin.css" />
   <style>
     :root{
       --bg:#f6f7fb;
