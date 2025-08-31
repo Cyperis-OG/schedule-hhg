@@ -7,7 +7,8 @@
   const BASE_PATH = '/095/schedule-ng';
   const API = {
     saveJob: `${BASE_PATH}/api/job_save.php`,
-    salesSearch: `${BASE_PATH}/api/salesmen_search.php`
+    salesSearch: `${BASE_PATH}/api/salesmen_search.php`,
+    customersSearch: `${BASE_PATH}/api/customers_search.php`
   };
 
   const pad2  = (n) => (n < 10 ? '0' : '') + n;
@@ -77,7 +78,10 @@
         <div class="qa-grid">
           <div class="qa-row">
             <label>Customer <span style="color:#ef4444">*</span></label>
-            <input name="job.customer_name" type="text" placeholder="e.g., Brightstar" required />
+            <div class="ac">
+              <input name="job.customer_name" type="text" placeholder="e.g., Brightstar" required autocomplete="off" />
+              <div class="ac-list"></div>
+            </div>
           </div>
           <div class="qa-row">
             <label>Contractor (applies to all days)</label>
@@ -135,6 +139,38 @@
             salesList.appendChild(it);
           });
           salesList.style.display = salesList.children.length ? 'block':'none';
+        },220);
+      });
+    }
+
+    const custInput = host.querySelector('input[name="job.customer_name"]');
+    const custList = custInput?.parentElement.querySelector('.ac-list');
+    if (custInput && custList) {
+      let tId=null;
+      custInput.addEventListener('input',()=>{
+        const q=custInput.value.trim();
+        if(tId) clearTimeout(tId);
+        if(q.length<2){ custList.style.display='none'; return; }
+        tId=setTimeout(async()=>{
+          const r=await fetch(`${API.customersSearch}?q=${encodeURIComponent(q)}`);
+          const j=await r.json(); custList.innerHTML='';
+          (j.results||[]).forEach(item=>{
+            const it=document.createElement('div'); it.className='ac-item';
+            it.innerHTML=`<div><strong>${esc(item.name)}</strong></div><div class="help">Prefers: ${esc(item.preferred_contractor_name||'—')} · Salesman: ${esc(item.default_salesman||'—')}</div>`;
+            it.addEventListener('click',()=>{
+              custInput.value=item.name; custList.style.display='none';
+              const loc=host.querySelector('input[name="day.0.location"]');
+              if(loc && item.default_location) loc.value=item.default_location;
+              const sal=host.querySelector('input[name="job.salesman"]');
+              if(sal && item.default_salesman) sal.value=item.default_salesman;
+              const jobn=host.querySelector('input[name="job.job_number"]');
+              if(jobn && item.last_job_number) jobn.value=item.last_job_number;
+              const sel=host.querySelector('select[name="job.contractor_id"]');
+              if(sel && item.preferred_contractor_id) sel.value=String(item.preferred_contractor_id);
+            });
+            custList.appendChild(it);
+          });
+          custList.style.display=custList.children.length?'block':'none';
         },220);
       });
     }
