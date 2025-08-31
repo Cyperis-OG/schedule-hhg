@@ -34,7 +34,7 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
   <meta charset="utf-8"/>
   <title>Add Job — Schedule NG</title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <link rel="stylesheet" href="../assets/admin.css" />
+  <link rel="stylesheet" href="admin.css" />
 
   <style>
     :root{
