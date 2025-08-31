@@ -1,5 +1,6 @@
 <?php
 include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../lib/ids.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
@@ -30,9 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
       }
     } else {
-      $stmt = $mysqli->prepare('INSERT INTO customers (name, preferred_contractor_id, default_salesman, last_job_number, default_location, standard_notes) VALUES (?,?,?,?,?,?)');
+      $uid = ulid();
+      $stmt = $mysqli->prepare('INSERT INTO customers (uid, name, preferred_contractor_id, default_salesman, last_job_number, default_location, standard_notes) VALUES (?,?,?,?,?,?,?)');
       if ($stmt) {
-        $stmt->bind_param('sisdss', $name, $pref, $sales, $jobn, $loc, $notes);
+        $stmt->bind_param('ssisdss', $uid, $name, $pref, $sales, $jobn, $loc, $notes);
         if (!$stmt->execute()) {
           $err = $stmt->error;
           error_log('DB execute failed: ' . $err);
