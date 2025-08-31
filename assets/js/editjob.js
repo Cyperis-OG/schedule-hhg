@@ -10,6 +10,8 @@
     editSave: API.editSave  || API.jobUpdate || `${BASE}/api/job_full_save.php`,
   };
 
+  console.log('[editJob] module initialized');
+
   const MAX_DAYS = Number(CFG.MAX_DAYS || 5);
 
   const DEFAULT_FIELDS = [
