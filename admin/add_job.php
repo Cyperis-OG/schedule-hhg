@@ -152,6 +152,13 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
       save:        '/095/schedule-ng/api/job_save.php'
     };
 
+    let defaultCustomerNotes = '';
+    function fillDayNotes(){
+      if(!defaultCustomerNotes) return;
+      const dn=document.querySelector('textarea[name="day.0.day_notes"]');
+      if(dn && !dn.value) dn.value=defaultCustomerNotes;
+    }
+
     // ---------------- Parse Prefill from URL ----------------
     const params = new URLSearchParams(location.search);
     const PREFILL = {
@@ -263,14 +270,18 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
                 const loc=document.querySelector('input[name="day.0.location"]');
                 if (loc && item.default_location) loc.value=item.default_location;
                 const sal=document.querySelector('input[name="job.salesman"]');
-                if (sal && item.default_salesman) sal.value=item.default_salesman;
+                if (sal){
+                  let val=item.default_salesman||'';
+                  if(item.default_salesman_phone) val=`${val} ${item.default_salesman_phone}`.trim();
+                  if(val) sal.value=val;
+                }
                 const jobn=document.querySelector('input[name="job.job_number"]');
                 if (jobn && item.last_job_number) jobn.value=item.last_job_number;
                 const jobNotes=document.querySelector('textarea[name="job.notes"]');
-                const dayNotes=document.querySelector('textarea[name="day.0.day_notes"]');
                 if (item.standard_notes){
                   if (jobNotes) jobNotes.value=item.standard_notes;
-                  if (dayNotes) dayNotes.value=item.standard_notes;
+                  defaultCustomerNotes=item.standard_notes;
+                  fillDayNotes();
                 }
                 const sel=document.querySelector('select[name="day.0.contractor_id"]');
                 if (sel && item.preferred_contractor_id) sel.value=String(item.preferred_contractor_id);
@@ -369,6 +380,8 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
           if (target) target.value = v;
         }
       }
+
+      if (idx === 0) fillDayNotes();
 
       // Wire actions
       dayCard.querySelector('[data-role="remove"]').addEventListener('click', () => { dayCard.remove(); renumberDays(); });
