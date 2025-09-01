@@ -52,5 +52,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </label>
     <button type="submit">Login</button>
   </form>
+  <button type="button" onclick="window.location.href='index.php'">Back to Schedule</button>
+
+  <script>
+    // Redirect back to the schedule after 2 minutes of inactivity on this page
+    setTimeout(function () {
+      window.location.href = 'index.php';
+    }, 2 * 60 * 1000);
+  </script>
 </body>
 </html>
