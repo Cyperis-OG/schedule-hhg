@@ -109,7 +109,13 @@ sch.appendTo('#Schedule');
 async function loadDay(dateStr) {
   try {
     const r = await fetch(`${API.fetchDay}?date=${encodeURIComponent(dateStr)}`);
-    const j = await r.json();
+    let j = { resources: [], events: [] };
+    try {
+      const txt = await r.text();
+      if (txt) j = JSON.parse(txt);
+    } catch (parseErr) {
+      console.warn('[loadDay] invalid JSON response:', parseErr);
+    }
 
     const resources = (j.resources || []).map(x => ({ ...x, id: Number(x.id) }));
     const rawEvents = (j.events || []).map(ev => ({
