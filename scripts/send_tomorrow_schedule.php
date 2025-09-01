@@ -2,6 +2,7 @@
 include '/home/freeman/job_scheduler.php';
 require_once __DIR__ . '/../lib/magic_link.php';
 require_once __DIR__ . '/../lib/email_helpers.php';
+date_default_timezone_set('America/Chicago');
 
 // Additional addresses that should always be CC'd.
 // Populate this array with strings like 'person@example.com'.
