@@ -35,6 +35,7 @@ if ($res) {
   <div class="container">
     <h1>Admin Dashboard</h1>
     <ul class="menu">
+      <li><a class="btn" href="mobile_schedule.php">Add Job</a><span class="desc">View mobile schedule</span></li>
       <li><a class="btn" href="add_job.php">Add Job</a><span class="desc">Create a new job with one or more days</span></li>
       <li><a class="btn" href="contractors.php">Contractors</a><span class="desc">Manage contractor records and status</span></li>
       <li><a class="btn" href="customers.php">Customers</a><span class="desc">View and edit customer details</span></li>
