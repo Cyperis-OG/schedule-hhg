@@ -1,8 +1,13 @@
 <?php
 include '/home/freeman/job_scheduler.php';
 date_default_timezone_set('America/Chicago');
+
+// Keep session_start if you want sessions for other things, 
+// but it's not required anymore for viewing.
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
+
+// Removed admin role check & redirect here
+
 $isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
 $date = $_GET['date'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) $date = date('Y-m-d');
