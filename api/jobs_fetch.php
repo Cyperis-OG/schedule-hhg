@@ -155,4 +155,10 @@ if ($stmt = $mysqli->prepare($sqlE)) {
   $stmt->close();
 }
 
-echo json_encode(['resources' => $resources, 'events' => $events]);
+$payload = ['resources' => $resources, 'events' => $events];
+$json = json_encode($payload, JSON_INVALID_UTF8_SUBSTITUTE);
+if ($json === false) {
+  http_response_code(500);
+  $json = json_encode(['resources' => [], 'events' => []]);
+}
+echo $json;
