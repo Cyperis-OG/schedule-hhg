@@ -38,16 +38,42 @@ if ($res) {
     $res->close();
 }
 
-// Determine which date(s) to send based on the day of week.
-// 1=Mon ... 7=Sun
-$today   = new DateTimeImmutable('today');
-$dow     = (int)$today->format('N');
+// Determine which date(s) to send.
+// By default the script behaves like the original cron logic:
+//   - Mon–Thu send the next day's schedule
+//   - Fri send schedules for Sat, Sun, and Mon
+// An explicit day offset can be provided to override this behavior.
+// For example, "php send_tomorrow_schedule.php 2" or
+// "send_tomorrow_schedule.php?day=2" will send for two days in the future.
+
+$today = new DateTimeImmutable('today');
+$dow   = (int)$today->format('N');
 $targets = [];
 
 // Delay between processing days (seconds)
 $delaySeconds = (int)getenv('SCHEDULE_EMAIL_DELAY') ?: 300;
 
-if ($dow >= 1 && $dow <= 4) {
+// Parse explicit day offset from CLI arguments or query string
+$dayParam = null;
+if (PHP_SAPI === 'cli') {
+    // Support "php script.php 2" or "php script.php day=2"
+    foreach ($argv as $arg) {
+        if (preg_match('/^day=?(\d+)$/', $arg, $m)) {
+            $dayParam = (int)$m[1];
+            break;
+        }
+    }
+    if ($dayParam === null && isset($argv[1])) {
+        $dayParam = (int)$argv[1];
+    }
+} else {
+    $dayParam = isset($_GET['day']) ? (int)$_GET['day'] : null;
+}
+
+if ($dayParam !== null && $dayParam >= 1) {
+    // Explicit override: send the requested day relative to today
+    $targets[] = $today->modify("+{$dayParam} day")->format('Y-m-d');
+} elseif ($dow >= 1 && $dow <= 4) {
     // Monday–Thursday → next day
     $targets[] = $today->modify('+1 day')->format('Y-m-d');
 } elseif ($dow === 5) {
@@ -56,7 +82,7 @@ if ($dow >= 1 && $dow <= 4) {
     $targets[] = $today->modify('+2 day')->format('Y-m-d');
     $targets[] = $today->modify('+3 day')->format('Y-m-d');
 } else {
-    // Weekend cron runs should do nothing (already handled Friday)
+    // Weekend cron runs with no explicit day should do nothing
     exit;
 }
 
@@ -127,4 +153,4 @@ foreach ($targets as $i => $day) {
     }
 }
 
-echo "Sent.";
+echo "Sent.\n";
