@@ -11,20 +11,6 @@ $extraCc = [];
 // Base URL for schedule links␊
 $baseUrl = rtrim(getenv('SCHEDULE_BASE_URL') ?: 'https://armstrong-scheduler.com/095/schedule-ng', '/');
 
-// Load active admin users to CC on every mail.
-$adminCc = [];
-$res = $mysqli->query("SELECT email FROM users WHERE role='admin' AND status='active'");
-if ($res) {
-    while ($row = $res->fetch_assoc()) {
-        $email = trim($row['email'] ?? '');
-        if ($email !== '') {
-            $adminCc[] = $email;
-        }
-    }
-    $res->close();
-}
-$ccList = array_merge($adminCc, $extraCc);
-
 // Load master schedule recipients
 $masterRecipients = [];
 $res = $mysqli->query("SELECT email FROM master_schedule_recipients WHERE active=1");
@@ -133,7 +119,7 @@ foreach ($targets as $i => $day) {
             $baseUrl, $cid, $day, $token);
         $body      = generate_email_body($subject, $message, $link);
 
-        send_email($emails, $subject, $body, $ccList);
+        send_email($emails, $subject, $body, $extraCc);
     }
 
     // Send master schedule
