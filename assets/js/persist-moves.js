@@ -7,8 +7,9 @@
     return;
   }
 
-  const API = (window.SCH_CFG && window.SCH_CFG.API) || {
-    persistTimeslot: '/095/schedule-ng/api/job_update_timeslot.php'
+  const apiCfg = (window.SCH_CFG && window.SCH_CFG.API) || {};
+  const API = {
+    persistTimeslot: apiCfg.persistTimeslot || './api/job_update_timeslot.php'
   };
 
   // use shared helpers if available, else fallbacks
