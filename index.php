@@ -47,6 +47,7 @@ if ($dayFieldsJson === false) $dayFieldsJson = '[]';
         </label>
         <a class="btn sm" href="./admin/">Admin</a>
         <button class="btn sm" type="button" onclick="window.open('./view_contractor_schedule.php?contractor_id=master&date=' + encodeURIComponent(window.getViewYMD ? window.getViewYMD() : '<?= $initDate ?>'), '_blank')">Master List</button>
+        <button class="btn sm" type="button" onclick="window.open('./map.php?date=' + encodeURIComponent(window.getViewYMD ? window.getViewYMD() : '<?= $initDate ?>'), '_blank')">Map</button>
         <a class="btn sm" href="logout.php">Logout</a>
       <?php else: ?>
         <a class="btn sm" href="login.php">Admin Login</a>
