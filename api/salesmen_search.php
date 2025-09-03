@@ -5,7 +5,7 @@
  * Returns a list of salesmen for autocomplete.
  * Each item: { id, name, phone }
  */
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $q = trim($_GET['q'] ?? '');

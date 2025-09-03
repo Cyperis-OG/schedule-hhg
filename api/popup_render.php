@@ -14,7 +14,7 @@ if ($job_day_uid === '') {
 }
 
 // 1) Load template JSON
-$templatePath = __DIR__ . '/../config/popup_template.json';
+$templatePath = SCHEDULE_DIR . 'config/popup_template.json';
 $template = json_decode(file_get_contents($templatePath), true);
 if (!$isAdmin && isset($template['actions']) && is_array($template['actions'])) {
     $template['actions'] = array_values(array_filter($template['actions'], function($a) {
