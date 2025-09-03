@@ -16,9 +16,14 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
   <style> #map{height: calc(100vh - 60px);} </style>
 </head>
 <body>
-  <div style="padding:8px">
+  <div style="padding:8px; display:flex; gap:4px; align-items:center;">
+    <button onclick="shift(-1)">&lt;</button>
     <input type="date" id="d" value="<?= htmlspecialchars($date) ?>">
+    <button onclick="shift(1)">&gt;</button>
+    <button onclick="today()">Today</button>
     <button onclick="load()">Load</button>
+    <button onclick="goSchedule()">Schedule</button>
+    <button onclick="goAdmin()">Admin</button>
   </div>
   <div id="map"></div>
 
@@ -37,9 +42,32 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
       return null;
     }
 
+    function shift(days){
+      const input = document.getElementById('d');
+      const d = new Date(input.value);
+      d.setDate(d.getDate() + days);
+      input.value = d.toISOString().slice(0,10);
+      load();
+    }
+
+    function today(){
+      document.getElementById('d').value = new Date().toISOString().slice(0,10);
+      load();
+    }
+
+    function goSchedule(){
+      const d = document.getElementById('d').value;
+      window.location = `${BASE_PATH}/index.php?date=${d}`;
+    }
+
+    function goAdmin(){
+      window.location = `${BASE_PATH}/admin/`;
+    }
+
     async function load(){
       group.clearLayers();
       const d = document.getElementById('d').value;
+      history.replaceState(null, '', `?date=${d}`);
       const rows = await fetch(`${BASE_PATH}/api/jobs_by_date_geo.php?date=${d}`).then(r=>r.json());
       const tasks = rows.map(async r=>{
         let coords = null;
