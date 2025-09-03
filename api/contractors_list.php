@@ -8,7 +8,7 @@
  * Output:
  *  { contractors: [ {id, uid, name, driver_id, active, display_order, color_hex, email_notify} ... ] }
  */
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 header('Content-Type: application/json');
 
 $res = $mysqli->query("SELECT id, uid, name, driver_id, active, display_order, color_hex, email_notify
