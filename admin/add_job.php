@@ -13,7 +13,7 @@
  *   /095/schedule-ng/api/customers_search.php
  *   /095/schedule-ng/api/job_save.php
  */
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
@@ -21,18 +21,18 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
 $isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
 
 // Load the template JSON
-$templatePath = __DIR__ . '/../config/job_form_template.json';
+$templatePath = SCHEDULE_DIR . 'config/job_form_template.json';
 $templateJson = file_exists($templatePath) ? file_get_contents($templatePath) : '{}';
 
-// Load dynamic per-day field configuration
-$fieldsPath = __DIR__ . '/../config/day_fields.json';
+// Load dynamic per-day field configuration␊
+$fieldsPath = SCHEDULE_DIR . 'config/day_fields.json';
 $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]';
 ?>
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>Add Job — Schedule NG</title>
+  <title>Add Job — <?= SCHEDULE_NAME ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <link rel="stylesheet" href="admin.css" />
 
