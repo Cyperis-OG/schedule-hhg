@@ -106,9 +106,9 @@
           <div class="qa-row status-row">
             <label>Status</label>
             <select name="job.status">
-              <option value="placeholder">Placeholder</option>
-              <option value="needs_paperwork">Scheduled - Needs Paperwork</option>
-              <option value="scheduled" selected>Scheduled</option>
+              <option value="placeholder">Placeholder</option>␊
+              <option value="needs_paperwork" selected>Scheduled - Needs Paperwork</option>
+              <option value="scheduled">Scheduled</option>
               <option value="dispatched">Dispatched</option>
               <option value="canceled">Canceled</option>
               <option value="completed">Completed</option>
@@ -414,7 +414,7 @@
         customer_name: customer,
         job_number: get('job.job_number').trim() || null,
         salesman: get('job.salesman').trim() || null,
-        status: get('job.status') || 'scheduled'
+        status: get('job.status') || 'needs_paperwork'
       };
 
       const days=[], filesMap=[];
