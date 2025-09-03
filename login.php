@@ -1,5 +1,5 @@
 <?php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Login</title>
+  <title>Admin Login — <?= SCHEDULE_NAME ?></title>
   <style>
     body { font-family: sans-serif; padding:20px; }
     label { display:block; margin-top:1rem; }
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </style>
 </head>
 <body>
-  <h1>Admin Login</h1>
+  <h1><?= SCHEDULE_NAME ?> Admin Login</h1>
   <?php if ($error): ?>
     <p class="error"><?= htmlspecialchars($error) ?></p>
   <?php endif; ?>
