@@ -1,5 +1,5 @@
 <?php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 date_default_timezone_set('America/Chicago');
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'contractor') { header('Location: ../contractor_login.php'); exit; }
@@ -51,7 +51,7 @@ function listAttachments($uid){
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Schedule</title>
+  <title><?= SCHEDULE_NAME ?> Schedule</title>
   <style>
     body { font-family:sans-serif; padding:10px; }
     .nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
