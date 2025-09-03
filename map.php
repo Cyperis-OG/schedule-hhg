@@ -21,20 +21,34 @@
     let group = L.layerGroup().addTo(map);
     const BASE_PATH = '<?= BASE_PATH ?>';
 
-    function load(){
+    async function geocode(loc){
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(loc)}`;
+      const res = await fetch(url, {headers:{'User-Agent':'schedule-ng'}});
+      const data = await res.json();
+      if(data[0]){ return {lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon)}; }
+      return null;
+    }
+
+    async function load(){
       group.clearLayers();
       const d = document.getElementById('d').value;
-      fetch(`${BASE_PATH}/api/jobs_by_date_geo.php?date=${d}`).then(r=>r.json()).then(rows=>{
-        const pts=[];
-        rows.forEach(r=>{
-          if(r.lat && r.lng){
-            const m = L.marker([r.lat, r.lng]).addTo(group);
-            m.bindPopup(`<b>${r.title}</b><br>${r.location}<br>${r.contractor||''}<br>${r.time}`);
-            pts.push([r.lat,r.lng]);
-          }
-        });
-        if(pts.length){ map.fitBounds(pts); }
+      const rows = await fetch(`${BASE_PATH}/api/jobs_by_date_geo.php?date=${d}`).then(r=>r.json());
+      const tasks = rows.map(async r=>{
+        let coords = null;
+        if(r.lat && r.lng){
+          coords = {lat:r.lat, lng:r.lng};
+        }else if(r.location){
+          coords = await geocode(r.location);
+        }
+        if(coords){
+          const m = L.marker([coords.lat, coords.lng]).addTo(group);
+          m.bindPopup(`<b>${r.title}</b><br>${r.location}<br>${r.contractor||''}<br>${r.time}`);
+          m.on('mouseover', ()=>m.openPopup());
+          m.on('mouseout', ()=>m.closePopup());
+        }
       });
+      await Promise.all(tasks);
+      if(group.getLayers().length){ map.fitBounds(group.getBounds()); }
     }
     load();
   </script>
