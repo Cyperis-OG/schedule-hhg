@@ -1,12 +1,12 @@
 <?php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
 // Basic user-agent check to detect mobile devices
 $isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
 
-$cfgPath = __DIR__ . '/../config/day_fields.json';
+$cfgPath = SCHEDULE_DIR . 'config/day_fields.json';
 $fields = [];
 if (file_exists($cfgPath)) {
     $json = file_get_contents($cfgPath);
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Job Fields — Schedule NG</title>
+  <title>Job Fields — <?= SCHEDULE_NAME ?></title>
   <link rel="stylesheet" href="admin.css" />
   <style>
     table{border-collapse:collapse;width:100%;background:#fff}
