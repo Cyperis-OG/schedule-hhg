@@ -35,5 +35,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
   // Log them in (set $_SESSION) then redirect to appropriate dashboard (contractor vs admin)
   // ...
-  header('Location: /095/schedule-ng/'); exit;
+  header('Location: ' . BASE_PATH . '/'); exit;
 }
