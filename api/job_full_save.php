@@ -1,5 +1,5 @@
 <?php
-// /095/schedule-ng/api/job_full_save.php
+// api/job_full_save.php
 // Update an existing job and its days by job_uid/day_uid, handling optional file uploads
 
 header('Content-Type: application/json');
@@ -255,7 +255,7 @@ try {
                     $target = $dir . $name;
                     if (move_uploaded_file($f['tmp'], $target)) {
                         dbg('    saved bol ' . $target);
-                        $saved[$i]['bol'][] = '/095/schedule-ng/uploads/' . $uid . '/bol/' . $name;
+                        $saved[$i]['bol'][] = BASE_PATH . '/uploads/' . $uid . '/bol/' . $name;
                     } else {
                         dbg('    failed to move bol to ' . $target);
                     }
@@ -273,7 +273,7 @@ try {
                 $target = $dir . $name;
                 if (move_uploaded_file($f['tmp'], $target)) {
                     dbg('    saved extra ' . $target);
-                    $saved[$i]['extra'][] = '/095/schedule-ng/uploads/' . $uid . '/extra/' . $name;
+                    $saved[$i]['extra'][] = BASE_PATH . '/uploads/' . $uid . '/extra/' . $name;
                 } else {
                     dbg('    failed to move extra to ' . $target);
                 }

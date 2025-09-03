@@ -95,7 +95,7 @@ try {
         if (is_dir($dir)) {
           foreach (scandir($dir) as $fn) {
             if ($fn === '.' || $fn === '..') continue;
-            $d['files'][$bucket][] = '/095/schedule-ng/uploads/' . $uid . '/' . $bucket . '/' . $fn;
+            $d['files'][$bucket][] = BASE_PATH . '/uploads/' . $uid . '/' . $bucket . '/' . $fn;
           }
         }
       }
