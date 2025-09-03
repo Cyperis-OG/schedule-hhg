@@ -1,9 +1,9 @@
-<?php include '/home/freeman/job_scheduler.php'; ?>
+<?php require_once __DIR__ . '/config.php'; ?>
 <!doctype html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Map View</title>
+  <title>Map View — <?= SCHEDULE_NAME ?></title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style> #map{height: calc(100vh - 60px);} </style>
 </head>
