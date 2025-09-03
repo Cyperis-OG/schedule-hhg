@@ -458,6 +458,7 @@ sch = new ej.schedule.Schedule({
 
   // Quick-Add on double click
   cellDoubleClick:(args)=>{
+    if (!window.IS_ADMIN) { args.cancel = true; return; }
     if(!args?.startTime || !args?.endTime) return;
     if(!args.element?.classList?.contains('e-work-cells')) return;
     openQuickAddDialog(args); args.cancel=true;
