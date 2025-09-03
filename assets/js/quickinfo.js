@@ -1,4 +1,4 @@
-// /095/schedule-ng/assets/js/quickInfo.js
+// assets/js/quickinfo.js
 (function () {
   const esc = (s) =>
     String(s ?? "").replace(/[&<>"']/g, (m) => (
