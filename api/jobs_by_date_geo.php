@@ -1,5 +1,5 @@
 <?php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 header('Content-Type: application/json');
 
 $date = $_GET['date'] ?? date('Y-m-d');

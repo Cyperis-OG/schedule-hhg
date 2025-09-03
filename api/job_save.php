@@ -19,7 +19,7 @@
  */
 
 header('Content-Type: application/json');
-require_once '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') {
   http_response_code(403);

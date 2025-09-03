@@ -1,6 +1,6 @@
 <?php
 // api/job_update_timeslot.php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 header('Content-Type: application/json');
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { echo json_encode(['error'=>'forbidden']); exit; }
