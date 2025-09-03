@@ -42,6 +42,9 @@
         }
         if(coords){
           const m = L.marker([coords.lat, coords.lng]).addTo(group);
+          if(r.contractor){
+            m.bindTooltip(r.contractor, {permanent:true, direction:'right'});
+          }
           m.bindPopup(`<b>${r.title}</b><br>${r.location}<br>${r.contractor||''}<br>${r.time}`);
           m.on('mouseover', ()=>m.openPopup());
           m.on('mouseout', ()=>m.closePopup());
