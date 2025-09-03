@@ -1,7 +1,6 @@
 <?php
 /**
- * /home/freeman/public_html/095/schedule-ng/index.php
- * Schedule NG — modular build (core + DnD + QuickAdd + QuickInfo)
+ * index.php — Schedule NG (modular build: core + DnD + QuickAdd + QuickInfo)
  */
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lib/magic_link.php';
@@ -75,7 +74,8 @@ if ($dayFieldsJson === false) $dayFieldsJson = '[]';
       DEFAULT_TZ: 'America/Chicago',
       MAX_DAYS: 5,
       INIT_DATE: '<?= $initDate ?>',
-      DAY_FIELDS: <?= $dayFieldsJson ?>
+      DAY_FIELDS: <?= $dayFieldsJson ?>,
+      BASE_PATH: '<?= BASE_PATH ?>'
     };
 
     if (window.ej?.schedule?.Schedule?.Inject) {
