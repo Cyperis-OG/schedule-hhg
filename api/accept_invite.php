@@ -1,6 +1,6 @@
 <?php
 // api/accept_invite.php  (or /invite/accept.php)
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../lib/ids.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
