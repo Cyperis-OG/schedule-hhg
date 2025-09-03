@@ -18,7 +18,7 @@
  * Tip: If you still see the old look after deploying,
  *      hard-refresh the page (Ctrl/Cmd + Shift + R) to bust cache.
  */
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
