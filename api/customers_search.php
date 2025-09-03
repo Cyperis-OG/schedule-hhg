@@ -1,7 +1,7 @@
 <?php
 /**
- * GET /095/schedule-ng/api/customers_search.php?q=term
- * ------------------------------------------------
+ * GET /api/customers_search.php?q=term
+ * -----------------------------------
  * Returns a small list of customers for autocomplete and their defaults:␊
  *  - default_location␊
  *  - default_salesman (with phone)
