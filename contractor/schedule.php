@@ -16,9 +16,9 @@ $res = $stmt->get_result();
 $jobs = $res->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-$today = date('Y-m-d');␊
+$today = date('Y-m-d');
 $tomorrow = date('Y-m-d', strtotime($today.' +1 day'));
-$now = new DateTime('now', new DateTimeZone('America/Chicago'));␊
+$now = new DateTime('now', new DateTimeZone('America/Chicago'));
 $showPreviewNotice = ($date > $tomorrow) || ($date === $tomorrow && ((int)$now->format('Hi') < 1600));
 
 function h($s){ return htmlspecialchars($s, ENT_QUOTES); }
