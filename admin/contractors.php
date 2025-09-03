@@ -1,6 +1,6 @@
 <?php
 /**
- * /095/schedule-ng/admin/contractors.php
+ * admin/contractors.php
  * ----------------------------------
  * Contractors Admin (self-contained, no external CDNs).
  *
@@ -12,8 +12,8 @@
  *  - Quick filter
  *
  * Depends on your existing endpoints:
- *   GET  /095/schedule-ng/api/contractors_list.php
- *   POST /095/schedule-ng/api/contractors_mutate.php
+ *   GET  {BASE_PATH}/api/contractors_list.php
+ *   POST {BASE_PATH}/api/contractors_mutate.php
  *
  * Tip: If you still see the old look after deploying,
  *      hard-refresh the page (Ctrl/Cmd + Shift + R) to bust cache.
@@ -169,7 +169,7 @@ $isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_A
         </div>
       </div>
       <div class="inline">
-        <a class="btn ghost" href="/095/schedule-ng/">
+        <a class="btn ghost" href="<?= BASE_PATH ?>/">
           <!-- calendar icon -->
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 2v4M17 2v4M3 10h18M5 6h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           Back to Schedule
@@ -257,9 +257,10 @@ $isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_A
 
   <script>
     // -------------------- Config --------------------
+    const BASE_PATH = '<?= BASE_PATH ?>';
     const API = {
-      list:   '/095/schedule-ng/api/contractors_list.php',
-      mutate: '/095/schedule-ng/api/contractors_mutate.php'
+      list:   `${BASE_PATH}/api/contractors_list.php`,
+      mutate: `${BASE_PATH}/api/contractors_mutate.php`
     };
 
     // -------------------- DOM refs --------------------
