@@ -1,7 +1,7 @@
 <?php
 /**
- * GET /095/schedule-ng/api/contractors_list.php
- * -----------------------------------------
+ * GET /api/contractors_list.php
+ * ---------------------------------
  * Returns all contractors with ordering info.
  * Used by the admin page and (optionally) other UIs.
  *

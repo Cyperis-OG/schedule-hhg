@@ -1,7 +1,7 @@
 <?php
 /**
- * POST /095/schedule-ng/api/contractors_mutate.php
- * --------------------------------------------
+ * POST /api/contractors_mutate.php
+ * ---------------------------------
  * Mutations for contractors:
  *  - add        {action:'add', name, color_hex?}
  *  - update     {action:'update', id, name, color_hex?}
