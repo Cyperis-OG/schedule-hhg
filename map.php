@@ -1,4 +1,12 @@
-<?php require_once __DIR__ . '/config.php'; ?>
+<?php
+require_once __DIR__ . '/config.php';
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: login.php'); exit; }
+$date = $_GET['date'] ?? date('Y-m-d');
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+  $date = date('Y-m-d');
+}
+?>
 <!doctype html>
 <html>
 <head>
@@ -9,7 +17,7 @@
 </head>
 <body>
   <div style="padding:8px">
-    <input type="date" id="d" value="<?= date('Y-m-d') ?>">
+    <input type="date" id="d" value="<?= htmlspecialchars($date) ?>">
     <button onclick="load()">Load</button>
   </div>
   <div id="map"></div>
