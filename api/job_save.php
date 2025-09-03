@@ -212,7 +212,7 @@ try {
           if ($ext !== 'pdf') continue;
           $name = sanitize_filename($f['name']);
           if (move_uploaded_file($f['tmp'], $dir.$name)) {
-            $saved[$i]['bol'][] = '/095/schedule-ng/uploads/' . $uid . '/bol/' . $name;
+            $saved[$i]['bol'][] = BASE_PATH . '/uploads/' . $uid . '/bol/' . $name;
           }
         }
       }
@@ -223,7 +223,7 @@ try {
         ensure_dir($dir);
         $name = sanitize_filename($f['name']);
         if (move_uploaded_file($f['tmp'], $dir.$name)) {
-          $saved[$i]['extra'][] = '/095/schedule-ng/uploads/' . $uid . '/extra/' . $name;
+          $saved[$i]['extra'][] = BASE_PATH . '/uploads/' . $uid . '/extra/' . $name;
         }
       }
     }
