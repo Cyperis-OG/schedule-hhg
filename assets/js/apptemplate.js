@@ -1,4 +1,4 @@
-// /095/schedule-ng/assets/js/apptemplate.js
+// assets/js/apptemplate.js
 (function () {
   if (!window.sch) return;
 
@@ -7,10 +7,11 @@
       { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]
     ));
 
-  let filePopup = null;
-  const closePopup = () => {
-    if (filePopup) {
-      filePopup.remove();
+export async function loadDay(dateStr) {
+  try {
+    const BASE_PATH = window.SCH_CFG?.BASE_PATH || '.';
+    const r = await fetch(`${BASE_PATH}/api/jobs_fetch.php?date=${encodeURIComponent(dateStr)}`);
+    const j = await r.json();
       filePopup = null;
       document.removeEventListener('pointerdown', outsideListener, true);
     }
