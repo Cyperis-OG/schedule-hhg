@@ -1,10 +1,11 @@
 // Centralized config + shared state
+const BASE_PATH = window.SCH_CFG?.BASE_PATH || '.';
 export const API = {
-  fetchDay:        '/095/schedule-ng/api/jobs_fetch.php',
-  popup:           '/095/schedule-ng/api/popup_render.php',
-  persistTimeslot: '/095/schedule-ng/api/job_update_timeslot.php',
-  saveJob:         '/095/schedule-ng/api/job_save.php',
-  deleteJob:       '/095/schedule-ng/api/job_delete.php'
+  fetchDay:        `${BASE_PATH}/api/jobs_fetch.php`,
+  popup:           `${BASE_PATH}/api/popup_render.php`,
+  persistTimeslot: `${BASE_PATH}/api/job_update_timeslot.php`,
+  saveJob:         `${BASE_PATH}/api/job_save.php`,
+  deleteJob:       `${BASE_PATH}/api/job_delete.php`
 };
 
 export const MAX_DAYS = 5;

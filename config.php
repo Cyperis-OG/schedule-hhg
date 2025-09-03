@@ -12,4 +12,11 @@ const SCHEDULE_DIR = __DIR__ . '/';
 // Human-readable schedule name.
 const SCHEDULE_NAME = 'Commercial Schedule';
 
+// Base path for this schedule within the web server.
+// Used to construct URLs like "{BASE_PATH}/api/...".
+const BASE_PATH = '/095/schedule-ng';
+
+// Absolute base URL for emails and external links. Override via SCHEDULE_BASE_URL env var.
+define('BASE_URL', rtrim(getenv('SCHEDULE_BASE_URL') ?: 'https://armstrong-scheduler.com/095/schedule-ng', '/'));
+
 ?>
