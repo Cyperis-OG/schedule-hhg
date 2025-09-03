@@ -31,11 +31,11 @@ export function createScheduler(){
     },
 
     cellDoubleClick:(args)=>{
+      if (!window.IS_ADMIN) { args.cancel = true; return; }
       if(!args?.startTime || !args?.endTime) return;
       if(!args.element?.classList?.contains('e-work-cells')) return;
       openQuickAddDialog(args); args.cancel=true;
     },
-
     actionComplete: (args) => {
       if (args.requestType === 'dateNavigate') {
         loadDay(getViewYMD());
