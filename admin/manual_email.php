@@ -8,7 +8,7 @@ if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); e
 // Basic user-agent check to detect mobile devices
 $isMobile = preg_match('/Mobi|Android|iPhone|iPad|iPod/i', $_SERVER['HTTP_USER_AGENT'] ?? '');
 
-$baseUrl = rtrim(getenv('SCHEDULE_BASE_URL') ?: 'https://armstrong-scheduler.com/095/schedule-ng', '/');
+$baseUrl = BASE_URL;
 
 // ----------------------------------------------------------------------
 // Simple file logger for troubleshooting email sending
