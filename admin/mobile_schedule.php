@@ -1,5 +1,5 @@
 <?php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 date_default_timezone_set('America/Chicago');
 
 // Keep session_start if you want sessions for other things, 
@@ -51,7 +51,7 @@ function listAttachments($uid){
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Schedule</title>
+  <title><?= SCHEDULE_NAME ?> Schedule</title>
   <link rel="stylesheet" href="admin.css" />
   <style>
     body { font-family:sans-serif; padding:10px; }
