@@ -5,7 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 // don't let PHP warnings break our JSON
 ini_set('display_errors', '0');
 
-require_once '/home/freeman/job_scheduler.php';  // <— absolute path
+require_once __DIR__ . '/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') {
   http_response_code(403);
