@@ -1,6 +1,5 @@
 <?php
 /**
- * /home/freeman/public_html/095/schedule-ng/admin/add_job.php
  * ------------------------------------------------------
  * Template-driven "Add Job" page with prefill support for modal launch.
  *
@@ -8,10 +7,9 @@
  *   ?date=YYYY-MM-DD&start=HH:MM&end=HH:MM&contractor_id=123&embed=1
  *
  * Depends on:
- *   /095/schedule-ng/config/job_form_template.json
- *   /095/schedule-ng/api/contractors_list.php
- *   /095/schedule-ng/api/customers_search.php
- *   /095/schedule-ng/api/job_save.php
+ * admin/add_job.php
+ *   depends on config/job_form_template.json
+ *   and API endpoints under {BASE_PATH}/api/
  */
 require_once __DIR__ . '/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
@@ -105,7 +103,7 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
         </div>
       </div>
       <div class="inline">
-        <a class="btn ghost back-btn" href="/095/schedule-ng/">
+        <a class="btn ghost back-btn" href="<?= BASE_PATH ?>/">
           <!-- calendar icon -->
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 2v4M17 2v4M3 10h18M5 6h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           Back to Schedule
@@ -153,11 +151,12 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
     })();
     document.getElementById('maxDaysLabel').textContent = TEMPLATE.maxDays || 5;
 
+    const BASE_PATH = '<?= BASE_PATH ?>';
     const API = {
-      contractors: '/095/schedule-ng/api/contractors_list.php',
-      customers:   '/095/schedule-ng/api/customers_search.php',
-      salesmen:    '/095/schedule-ng/api/salesmen_search.php',
-      save:        '/095/schedule-ng/api/job_save.php'
+      contractors: `${BASE_PATH}/api/contractors_list.php`,
+      customers:   `${BASE_PATH}/api/customers_search.php`,
+      salesmen:    `${BASE_PATH}/api/salesmen_search.php`,
+      save:        `${BASE_PATH}/api/job_save.php`
     };
 
     let defaultCustomerNotes = '';
@@ -505,7 +504,7 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
 
       // Also support standalone use: redirect back to schedule
       const d = payload.days[0].work_date;
-      setTimeout(() => { window.location.href = `/095/schedule-ng/?date=${encodeURIComponent(d)}`; }, 650);
+      setTimeout(() => { window.location.href = `${BASE_PATH}/?date=${encodeURIComponent(d)}`; }, 650);
     }
 
     // ---------------- Boot ----------------
