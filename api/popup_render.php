@@ -1,7 +1,7 @@
 <?php
 // api/popup_render.php
 // Returns HTML for the quick-info popup using /config/popup_template.json
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 $isAdmin = (($_SESSION['role'] ?? '') === 'admin');
 
