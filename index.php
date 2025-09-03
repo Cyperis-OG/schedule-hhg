@@ -3,7 +3,7 @@
  * /home/freeman/public_html/095/schedule-ng/index.php
  * Schedule NG — modular build (core + DnD + QuickAdd + QuickInfo)
  */
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/lib/magic_link.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
@@ -22,14 +22,14 @@ if ($isAdmin && $isMobile) {
   header('Location: ./admin/mobile_schedule.php?date=' . urlencode($initDate));
   exit;
 }
-$dayFieldsJson = file_get_contents(__DIR__ . '/config/day_fields.json');
+$dayFieldsJson = file_get_contents(SCHEDULE_DIR . 'config/day_fields.json');
 if ($dayFieldsJson === false) $dayFieldsJson = '[]';
 ?>
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Schedule NG</title>
+  <title><?= SCHEDULE_NAME ?></title>
 
   <?php include __DIR__ . '/includes/syncfusion_cdn.php'; ?>
 
@@ -39,7 +39,7 @@ if ($dayFieldsJson === false) $dayFieldsJson = '[]';
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">Schedule NG</div>
+    <div class="brand"><?= SCHEDULE_NAME ?></div>
     <div class="actions">
       <?php if ($isAdmin): ?>
         <label class="switch dnd-toggle">
