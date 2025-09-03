@@ -1,7 +1,7 @@
 <?php
 /**
- * GET /095/schedule-ng/api/salesmen_search.php?q=term
- * ---------------------------------------------------
+ * GET /api/salesmen_search.php?q=term
+ * -----------------------------------
  * Returns a list of salesmen for autocomplete.
  * Each item: { id, name, phone }
  */
