@@ -7,11 +7,10 @@
       { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]
     ));
 
-export async function loadDay(dateStr) {
-  try {
-    const BASE_PATH = window.SCH_CFG?.BASE_PATH || '.';
-    const r = await fetch(`${BASE_PATH}/api/jobs_fetch.php?date=${encodeURIComponent(dateStr)}`);
-    const j = await r.json();
+  let filePopup = null;
+  const closePopup = () => {
+    if (filePopup) {
+      filePopup.remove();
       filePopup = null;
       document.removeEventListener('pointerdown', outsideListener, true);
     }
@@ -24,6 +23,7 @@ export async function loadDay(dateStr) {
 
     const list = [];
     const hasBol = files?.bol && files.bol.length;
+    (files?.bol || []).forEach(u =>
     (files?.bol || []).forEach(u =>
       list.push(`<li>BOL/CSO: <a href="${u}" target="_blank">${u.split('/').pop()}</a></li>`)
     );
