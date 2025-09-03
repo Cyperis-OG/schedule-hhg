@@ -8,8 +8,8 @@ date_default_timezone_set('America/Chicago');
 // Populate this array with strings like 'person@example.com'.
 $extraCc = [];
 
-// Base URL for schedule links␊
-$baseUrl = rtrim(getenv('SCHEDULE_BASE_URL') ?: 'https://armstrong-scheduler.com/095/schedule-ng', '/');
+// Base URL for schedule links
+$baseUrl = BASE_URL;
 
 // Load master schedule recipients
 $masterRecipients = [];
