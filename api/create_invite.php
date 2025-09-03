@@ -19,6 +19,6 @@ $stmt = $mysqli->prepare("INSERT INTO invite_tokens (token,email,role,contractor
 $stmt->bind_param('sssds', $token, $email, $role, $contractor_id, $exp);
 $stmt->execute();
 
-// Email the link yourself or echo it:␊
-$link = "https://www.armstrong-scheduler.com/095/schedule-ng/invite/accept.php?token={$token}";
+// Email the link yourself or echo it:
+$link = BASE_URL . '/invite/accept.php?token=' . $token;
 echo json_encode(['ok'=>true, 'invite_link'=>$link]);
