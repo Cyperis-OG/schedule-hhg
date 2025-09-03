@@ -1,5 +1,5 @@
 <?php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
 
@@ -19,7 +19,7 @@ if ($res) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Dashboard — Schedule NG</title>
+  <title>Admin Dashboard — <?= SCHEDULE_NAME ?></title>
   <link rel="stylesheet" href="admin.css" />
   <style>
     .container { max-width:900px; margin:0 auto; padding:20px; }

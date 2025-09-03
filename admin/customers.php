@@ -1,5 +1,5 @@
 <?php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../lib/ids.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (($_SESSION['role'] ?? '') !== 'admin') { header('Location: ../login.php'); exit; }
