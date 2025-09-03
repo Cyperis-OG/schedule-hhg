@@ -19,11 +19,12 @@
     const map = L.map('map').setView([32.7767, -96.7970], 8);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19 }).addTo(map);
     let group = L.layerGroup().addTo(map);
+    const BASE_PATH = '<?= BASE_PATH ?>';
 
     function load(){
       group.clearLayers();
       const d = document.getElementById('d').value;
-      fetch(`/095/schedule-ng/api/jobs_by_date_geo.php?date=${d}`).then(r=>r.json()).then(rows=>{
+      fetch(`${BASE_PATH}/api/jobs_by_date_geo.php?date=${d}`).then(r=>r.json()).then(rows=>{
         const pts=[];
         rows.forEach(r=>{
           if(r.lat && r.lng){
