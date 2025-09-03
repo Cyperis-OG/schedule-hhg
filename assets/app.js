@@ -8,7 +8,7 @@ if (window.ej?.schedule?.Schedule?.Inject) {
 }
 
 // ----------------------- Config / helpers -----------------------
-const BASE_PATH = '/095/schedule-ng';
+const BASE_PATH = window.SCH_CFG?.BASE_PATH || '.';
 const API = {
   fetchDay:        `${BASE_PATH}/api/jobs_fetch.php`,
   popup:           `${BASE_PATH}/api/popup_render.php`,
