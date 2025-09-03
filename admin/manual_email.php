@@ -1,5 +1,5 @@
 <?php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../lib/magic_link.php';
 require_once __DIR__ . '/../lib/email_helpers.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
