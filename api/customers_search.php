@@ -11,7 +11,7 @@
  *␊
  * Output: { results: [ { id, name, default_location, default_salesman, default_salesman_phone, preferred_contractor_id, preferred_contractor_name, last_job_number, standard_notes } ... ] }
  */
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/../config.php';
 header('Content-Type: application/json; charset=utf-8');
 
 $q = trim($_GET['q'] ?? '');
