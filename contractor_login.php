@@ -1,5 +1,5 @@
 <?php
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -33,7 +33,7 @@ while ($row = $res->fetch_assoc()) { $cons[] = $row; }
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Contractor Login</title>
+  <title>Contractor Login — <?= SCHEDULE_NAME ?></title>
   <style>
     body { font-family: sans-serif; padding:20px; }
     select, input { font-size:1.2rem; width:100%; padding:8px; margin-top:8px; }
@@ -42,7 +42,7 @@ while ($row = $res->fetch_assoc()) { $cons[] = $row; }
   </style>
 </head>
 <body>
-  <h2>Contractor Login</h2>
+  <h2><?= SCHEDULE_NAME ?> Contractor Login</h2>
   <?php if ($error): ?><div class="error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
   <form method="post">
     <label>Select Your Name

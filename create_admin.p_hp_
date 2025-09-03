@@ -17,7 +17,7 @@
 declare(strict_types=1);
 
 // --- Bootstrap: DB + session ---
-include '/home/freeman/job_scheduler.php';
+require_once __DIR__ . '/config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 // -----------------------------
