@@ -24,7 +24,6 @@
     const list = [];
     const hasBol = files?.bol && files.bol.length;
     (files?.bol || []).forEach(u =>
-    (files?.bol || []).forEach(u =>
       list.push(`<li>BOL/CSO: <a href="${u}" target="_blank">${u.split('/').pop()}</a></li>`)
     );
     if (files?.extra && files.extra.length) {
