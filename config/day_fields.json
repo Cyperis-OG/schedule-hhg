@@ -51,13 +51,17 @@
     },
     {
         "key": "weight",
-        "label": "Shipment Weight",
-        "enabled": true
+        "label": "Weight",
+        "enabled": true,
+        "input": "number",
+        "step": "0.01",
+        "default": ""
     },
     {
         "key": "equipment",
         "label": "Equipment",
-        "enabled": true
+        "enabled": true,
+        "input": "text"
     },
     {
         "key": "service_type",
