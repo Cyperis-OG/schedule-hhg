@@ -18,6 +18,8 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
     return ds.map(c=>`<option value="${String(c.id)}">${c.name}</option>`).join('');
   };
 
+  const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
   const host=document.createElement('div');
   host.className='qa';
   host.innerHTML=`
@@ -36,8 +38,12 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
         </div>
 
         <div class="qa-row">
-          <label>Salesman / Primary Contact</label>
+          <label>Requester Name</label>
           <input name="job.salesman" type="text" placeholder="Optional" />
+        </div>
+        <div class="qa-row">
+          <label>Service Type</label>
+          <input name="job.service_type" type="text" placeholder="Optional" />
         </div>
         <div class="qa-row">
           <label>Job Number</label>
@@ -67,6 +73,8 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
     const start = h24ToTriple(initial?.start24 || start24);
     const end   = h24ToTriple(initial?.end24   || end24);
     const loc   = initial?.location || '';
+    const equipment = initial?.equipment || '';
+    const weight    = initial?.weight ?? '';
 
     const card=document.createElement('div');
     card.className='day-card';
@@ -132,6 +140,8 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
           <div class="qa-row"><label>Supervisors</label>     <input name="day.${index}.supervisors"      type="number" min="0" step="1" value="0" /></div>
           <div class="qa-row"><label>Project Managers</label><input name="day.${index}.project_managers" type="number" min="0" step="1" value="0" /></div>
           <div class="qa-row"><label>Electricians</label>    <input name="day.${index}.electricians"     type="number" min="0" step="1" value="0" /></div>
+          <div class="qa-row"><label>Equipment</label>       <input name="day.${index}.equipment"        type="text" value="${equipment ? escHtml(equipment) : ''}" placeholder="Optional" /></div>
+          <div class="qa-row"><label>Weight</label>          <input name="day.${index}.weight"           type="number" min="0" step="0.01" value="${weight !== '' ? escHtml(weight) : ''}" placeholder="Optional" /></div>
         </div>
 
         <div class="day-notes qa-row">
@@ -219,6 +229,8 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
       supervisors: g('supervisors'),
       project_managers: g('project_managers'),
       electricians: g('electricians'),
+      equipment: g('equipment'),
+      weight: g('weight'),
       notes: card.querySelector(`[name="day.${idx}.notes"]`)?.value ?? ''
     });
   }
@@ -246,7 +258,8 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
     addDay({
       date: nextDate, start24: startS, end24: endS,
       location: '', tractors:0, bobtails:0, movers:0, drivers:0, installers:0,
-      pctechs:0, supervisors:0, project_managers:0, electricians:0, notes:''
+      pctechs:0, supervisors:0, project_managers:0, electricians:0,
+      equipment:'', weight:'', notes:''
     });
   });
 
@@ -286,6 +299,7 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
       customer_name: customer,
       job_number: get('job.job_number').trim() || null,
       salesman: get('job.salesman').trim() || null,
+      service_type: get('job.service_type').trim() || null,
       status: get('job.status') || 'needs_paperwork'
     };
 
@@ -307,6 +321,8 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
         supervisors:+(g('supervisors')||0),
         project_managers:+(g('project_managers')||0),
         electricians:+(g('electricians')||0),
+        equipment:(g('equipment')||'').trim() || null,
+        weight:(()=>{ const v=(g('weight')||'').trim(); if(v==='') return null; const n=Number(v); return Number.isNaN(n)?null:n; })(),
         day_notes:(card.querySelector(`[name="day.${idx}.notes"]`)?.value||'').trim() || null,
         status: job.status,
         meta:{}
