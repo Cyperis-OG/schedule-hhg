@@ -49,7 +49,7 @@ if ($cid === 'master') {
     $stmt = $mysqli->prepare("SELECT jd.uid, jd.work_date, jd.start_time, jd.end_time, jd.location,
                                        jd.tractors, jd.bobtails, jd.drivers, jd.movers, jd.installers, jd.pctechs,
                                        jd.supervisors, jd.project_managers, jd.crew_transport, jd.electricians,
-                                       jd.day_notes, j.title AS customer_name, j.job_number, j.salesman,
+                                       jd.equipment, jd.weight, jd.day_notes, j.title AS customer_name, j.job_number, j.salesman, j.service_type,
                                        c.name AS contractor_name
                                 FROM job_days jd
                                 JOIN jobs j ON j.uid = jd.job_uid
@@ -61,7 +61,7 @@ if ($cid === 'master') {
     $stmt = $mysqli->prepare("SELECT jd.uid, jd.work_date, jd.start_time, jd.end_time, jd.location,
                                        jd.tractors, jd.bobtails, jd.drivers, jd.movers, jd.installers, jd.pctechs,
                                        jd.supervisors, jd.project_managers, jd.crew_transport, jd.electricians,
-                                       jd.day_notes, j.title AS customer_name, j.job_number, j.salesman
+                                       jd.equipment, jd.weight, jd.day_notes, j.title AS customer_name, j.job_number, j.salesman, j.service_type
                                 FROM job_days jd
                                 JOIN jobs j ON j.uid = jd.job_uid
                                 WHERE jd.contractor_id = ? AND jd.work_date BETWEEN ? AND ?
@@ -105,6 +105,16 @@ function formatLabor(array $row): string {
         }
     }
     return $lines ? implode('<br>', $lines) : 'None';
+}
+
+function formatWeightValue($value): string {
+    if ($value === null || $value === '' || (is_string($value) && strtolower($value) === 'null')) {
+        return '—';
+    }
+    if (is_numeric($value)) {
+        return number_format((float)$value);
+    }
+    return htmlspecialchars((string)$value);
 }
 
 function listAttachments(string $uid): string {
@@ -203,8 +213,11 @@ function listAttachments(string $uid): string {
                 <th>Time</th>
                 <th>Job Number</th>
                 <th>Customer</th>
-                <th>Salesman</th>
+                <th>Requester Name</th>
+                <th>Service Type</th>
                 <th>Location</th>
+                <th>Equipment</th>
+                <th>Weight</th>
                 <th>Vehicles</th>
                 <th>Labor</th>
                 <th>Attachment</th>
@@ -213,9 +226,9 @@ function listAttachments(string $uid): string {
         <tbody>
             <tr class="job-spacer">
                 <?php if ($cid === 'master'): ?>
-                    <td colspan="10"></td>
+                    <td colspan="13"></td>
                 <?php else: ?>
-                    <td colspan="9"></td>
+                    <td colspan="12"></td>
                 <?php endif; ?>
             </tr>
         <?php $total = count($jobs); $i = 0; foreach ($jobs as $job):
@@ -231,9 +244,9 @@ function listAttachments(string $uid): string {
         ?>
             <tr class="job-title job-block <?= $rowClass ?>">
                 <?php if ($cid === 'master'): ?>
-                    <td colspan="10"><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
+                    <td colspan="13"><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
                 <?php else: ?>
-                    <td colspan="9"><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
+                    <td colspan="12"><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
                 <?php endif; ?>
             </tr>
             <tr class="job-block <?= $rowClass ?>">
@@ -244,25 +257,28 @@ function listAttachments(string $uid): string {
                 <td><?= $start . ' - ' . $end ?></td>
                 <td><?= htmlspecialchars($job['job_number'] ?? 'N/A') ?></td>
                 <td><?= htmlspecialchars($job['customer_name'] ?? 'N/A') ?></td>
-                <td><?= htmlspecialchars($job['salesman'] ?? 'N/A') ?></td>
+                <td><?= htmlspecialchars($job['salesman'] ?? '') ?: '—' ?></td>
+                <td><?= htmlspecialchars($job['service_type'] ?? '') ?: '—' ?></td>
                 <td><?= htmlspecialchars($job['location'] ?? '') ?></td>
+                <td><?= htmlspecialchars($job['equipment'] ?? '') ?: '—' ?></td>
+                <td><?= formatWeightValue($job['weight'] ?? null) ?></td>
                 <td><?= $vehicles ?></td>
                 <td><?= $labor ?></td>
                 <td><?= $attach ?></td>
             </tr>
             <tr class="job-notes job-block <?= $rowClass ?>">
                 <?php if ($cid === 'master'): ?>
-                    <td colspan="10"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
+                    <td colspan="13"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
                 <?php else: ?>
-                    <td colspan="9"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
+                    <td colspan="12"><strong>Notes:</strong> <?= $notes ?: 'None' ?></td>
                 <?php endif; ?>
             </tr>
             <?php if ($i < $total): ?>
             <tr class="job-spacer">
                 <?php if ($cid === 'master'): ?>
-                    <td colspan="10"></td>
+                    <td colspan="13"></td>
                 <?php else: ?>
-                    <td colspan="9"></td>
+                    <td colspan="12"></td>
                 <?php endif; ?>
             </tr>
             <?php endif; ?>
