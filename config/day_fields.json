@@ -58,5 +58,10 @@
         "key": "equipment",
         "label": "Equipment",
         "enabled": true
+    },
+    {
+        "key": "service_type",
+        "label": "Service Type",
+        "enabled": true
     }
 ]
