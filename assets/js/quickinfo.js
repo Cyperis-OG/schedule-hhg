@@ -10,18 +10,33 @@
   const IS_ADMIN = Boolean(window.IS_ADMIN);
 
   const DEFAULT_FIELDS = [
-    { key: 'tractors',         label: 'TTrailers' },
-    { key: 'bobtails',         label: 'Bobtails' },
-    { key: 'movers',           label: 'Movers' },
-    { key: 'drivers',          label: 'Drivers' },
-    { key: 'installers',       label: 'Installers' },
-    { key: 'pctechs',          label: 'PC Techs' },
-    { key: 'supervisors',      label: 'Supervisors' },
-    { key: 'project_managers', label: 'Project Managers' },
-    { key: 'crew_transport',   label: 'Crew Transport' },
-    { key: 'electricians',     label: 'Electricians' }
+    { key: 'tractors',         label: 'TTrailers',        input: 'number' },
+    { key: 'bobtails',         label: 'Bobtails',         input: 'number' },
+    { key: 'movers',           label: 'Movers',           input: 'number' },
+    { key: 'drivers',          label: 'Drivers',          input: 'number' },
+    { key: 'installers',       label: 'Installers',       input: 'number' },
+    { key: 'pctechs',          label: 'PC Techs',         input: 'number' },
+    { key: 'supervisors',      label: 'Supervisors',      input: 'number' },
+    { key: 'project_managers', label: 'Project Managers', input: 'number' },
+    { key: 'crew_transport',   label: 'Crew Transport',   input: 'number' },
+    { key: 'electricians',     label: 'Electricians',     input: 'number' },
+    { key: 'equipment',        label: 'Equipment',        input: 'text' },
+    { key: 'weight',           label: 'Weight',           input: 'number', step: '0.01', default: '' }
   ];
-  const DAY_FIELDS = (CFG.DAY_FIELDS || DEFAULT_FIELDS).filter(f => f.enabled !== false);
+
+  function normalizeDayField(f){
+    const input = (f.input || f.type || '').toLowerCase() === 'text' ? 'text' : 'number';
+    const step = f.step ?? (input === 'number' ? (f.decimals ? '0.01' : '1') : undefined);
+    const defaultValue = f.default ?? (input === 'text' ? '' : 0);
+    return { ...f, input, step, defaultValue };
+  }
+
+  const DAY_FIELDS = (CFG.DAY_FIELDS || DEFAULT_FIELDS)
+    .filter(f => f.enabled !== false)
+    .map(normalizeDayField);
+  const WEIGHT_FIELD = DAY_FIELDS.find(f => f.key === 'weight');
+  const NUMERIC_FIELDS = DAY_FIELDS.filter(f => f.input !== 'text' && f.key !== 'weight');
+  const TEXT_FIELDS    = DAY_FIELDS.filter(f => f.input === 'text');
   const LEGACY_MAP = {
     tractors: 'NumTractorTrailers',
     bobtails: 'NumBobtails',
@@ -97,12 +112,35 @@
     const statusSlug = String(ev.Status || 'scheduled').toLowerCase();
     const statusLabel = STATUS_LABELS[statusSlug] || statusSlug;
     const contractor = contractorNameById(ev.ContractorId);
+    let requester = ev.RequesterName || ev.salesman || ev.Salesman || '';
+    requester = requester && requester !== 'null' ? String(requester).trim() : '';
+    let serviceType = ev.ServiceType || ev.service_type || '';
+    serviceType = serviceType && serviceType !== 'null' ? String(serviceType).trim() : '';
 
-    const countsText = DAY_FIELDS.map(f => {
+    const countsText = NUMERIC_FIELDS.map(f => {
       const legacy = LEGACY_MAP[f.key];
       const val = Number(ev[f.key] ?? (legacy ? ev[legacy] : 0) ?? 0);
       return `${val} - ${f.label}`;
     }).join('\n');
+    const textDetails = TEXT_FIELDS.map(f => {
+      const legacy = LEGACY_MAP[f.key];
+      const raw = ev[f.key] ?? (legacy ? ev[legacy] : null);
+      const value = raw != null ? String(raw).trim() : '';
+      return value ? { label: f.label, value } : null;
+    }).filter(Boolean);
+    const weightFormatted = (value) => {
+      if (value === '' || value == null || value === 'null') return '';
+      const num = Number(value);
+      if (!Number.isFinite(num)) return String(value);
+      return num.toLocaleString();
+    };
+    const formattedTextDetails = textDetails.filter(item => item.value !== '');
+    if (WEIGHT_FIELD) {
+      const weightVal = weightFormatted(ev.weight ?? ev.Weight ?? ev[WEIGHT_FIELD.key] ?? null);
+      if (weightVal) {
+        formattedTextDetails.push({ label: WEIGHT_FIELD.label, value: weightVal });
+      }
+    }
 
     const host = document.createElement('div');
     host.className = 'qi-card';
@@ -130,8 +168,13 @@
         <div class="qi-row"><div class="qi-label">Contractor:</div>
           <div class="qi-value">${esc(contractor)}</div></div>
 
+        ${requester ? `<div class="qi-row"><div class="qi-label">Requester:</div><div class="qi-value">${esc(requester)}</div></div>` : ''}
+        ${serviceType ? `<div class="qi-row"><div class="qi-label">Service Type:</div><div class="qi-value">${esc(serviceType)}</div></div>` : ''}
+
         <div class="qi-row"><div class="qi-label">Resources:</div>
-          <div class="qi-value">${esc(countsText)}</div></div>
+          <div class="qi-value">${esc(countsText || '—')}</div></div>
+
+        ${formattedTextDetails.map(item => `<div class="qi-row"><div class="qi-label">${esc(item.label)}:</div><div class="qi-value">${esc(item.value)}</div></div>`).join('')}
 
         <div class="qi-row"><div class="qi-label">Status:</div>
           <div class="qi-value">${esc(statusLabel)}</div></div>
@@ -221,13 +264,14 @@
         alert('Date and time are required.');
         return;
       }
-      const job = {
-        title: ev.Customer || ev.Subject || 'Job',
-        customer_name: ev.Customer || ev.Subject || 'Job',
-        job_number: ev.JobNumber || null,
-        salesman: ev.salesman || ev.Salesman || null,
-        status: ev.Status || 'scheduled'
-      };
+    const job = {
+      title: ev.Customer || ev.Subject || 'Job',
+      customer_name: ev.Customer || ev.Subject || 'Job',
+      job_number: ev.JobNumber || null,
+      salesman: ev.RequesterName || ev.salesman || ev.Salesman || null,
+      service_type: ev.ServiceType || ev.service_type || null,
+      status: ev.Status || 'scheduled'
+    };
         const day = {
           work_date: date,
           start_time: `${startS}:00`,
@@ -240,7 +284,16 @@
         };
         DAY_FIELDS.forEach(f => {
           const legacy = LEGACY_MAP[f.key];
-          day[f.key] = Number(ev[f.key] ?? (legacy ? ev[legacy] : 0) ?? 0);
+          const raw = ev[f.key] ?? (legacy ? ev[legacy] : null);
+          if (f.input === 'text') {
+            const val = raw != null ? String(raw).trim() : '';
+            day[f.key] = val === '' ? null : val;
+          } else if (raw === '' || raw == null) {
+            day[f.key] = f.defaultValue === '' ? null : 0;
+          } else {
+            const num = Number(raw);
+            day[f.key] = Number.isFinite(num) ? num : (f.defaultValue === '' ? null : 0);
+          }
         });
         try {
         const res = await fetch(API.saveJob, {
