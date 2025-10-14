@@ -91,13 +91,17 @@
             </select>
           </div>
 
-          <div class="qa-row">
-            <label>Salesman / Primary Contact</label>
-            <div class="ac">
-              <input name="job.salesman" type="text" placeholder="Optional" autocomplete="off" />
-              <div class="ac-list"></div>
-            </div>
+        <div class="qa-row">
+          <label>Requester Name</label>
+          <div class="ac">
+            <input name="job.salesman" type="text" placeholder="Optional" autocomplete="off" />
+            <div class="ac-list"></div>
           </div>
+        </div>
+        <div class="qa-row">
+          <label>Service Type</label>
+          <input name="job.service_type" type="text" placeholder="Optional" />
+        </div>
           <div class="qa-row">
             <label>Job Number</label>
             <input name="job.job_number" type="text" placeholder="Optional (e.g., DA-14855-5)" />
@@ -156,7 +160,7 @@
           const j=await r.json(); custList.innerHTML='';
           (j.results||[]).forEach(item=>{
             const it=document.createElement('div'); it.className='ac-item';
-            it.innerHTML=`<div><strong>${esc(item.name)}</strong></div><div class="help">Prefers: ${esc(item.preferred_contractor_name||'—')} · Salesman: ${esc(item.default_salesman||'—')}</div>`;
+            it.innerHTML=`<div><strong>${esc(item.name)}</strong></div><div class="help">Prefers: ${esc(item.preferred_contractor_name||'—')} · Requester: ${esc(item.default_salesman||'—')}</div>`;
             it.addEventListener('click',()=>{
               custInput.value=item.name; custList.style.display='none';
               const loc=host.querySelector('input[name="day.0.location"]');
