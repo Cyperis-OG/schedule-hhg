@@ -9,7 +9,7 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) $date = date('Y-m-d');
 $prev = date('Y-m-d', strtotime($date.' -1 day'));
 $next = date('Y-m-d', strtotime($date.' +1 day'));
 
-$stmt = $mysqli->prepare("SELECT jd.uid, jd.start_time, jd.end_time, jd.location, jd.tractors, jd.bobtails, jd.drivers, jd.movers, jd.installers, jd.pctechs, jd.supervisors, jd.project_managers, jd.crew_transport, jd.electricians, jd.day_notes, jd.status, j.title AS customer_name, j.job_number, j.salesman FROM job_days jd JOIN jobs j ON j.uid = jd.job_uid WHERE jd.contractor_id=? AND jd.work_date=? ORDER BY jd.start_time");
+$stmt = $mysqli->prepare("SELECT jd.uid, jd.start_time, jd.end_time, jd.location, jd.tractors, jd.bobtails, jd.drivers, jd.movers, jd.installers, jd.pctechs, jd.supervisors, jd.project_managers, jd.crew_transport, jd.electricians, jd.equipment, jd.weight, jd.day_notes, jd.status, j.title AS customer_name, j.job_number, j.salesman, j.service_type FROM job_days jd JOIN jobs j ON j.uid = jd.job_uid WHERE jd.contractor_id=? AND jd.work_date=? ORDER BY jd.start_time");
 $stmt->bind_param('is', $cid, $date);
 $stmt->execute();
 $res = $stmt->get_result();
@@ -32,6 +32,11 @@ function fmtLabor($r){
   $items=['Super'=>$r['supervisors']??0,'Drivers'=>$r['drivers']??0,'Movers'=>$r['movers']??0,'Installers'=>$r['installers']??0,'PC Techs'=>$r['pctechs']??0,'Proj Mgrs'=>$r['project_managers']??0,'Electricians'=>$r['electricians']??0];
   $out=[]; foreach($items as $k=>$v){ if((int)$v>0)$out[]="$v $k"; }
   return $out?implode(', ',$out):'None';
+}
+function fmtWeight($w){
+  if($w===null || $w==='' || (is_string($w) && strtolower($w)==='null')) return '—';
+  if(is_numeric($w)) return number_format((float)$w);
+  return h($w);
 }
 function listAttachments($uid){
   $links=[];
@@ -89,8 +94,12 @@ function listAttachments($uid){
     </button>
     <div id="d<?= $uid ?>" class="job-details" style="display:none;">
       <div><strong>Location:</strong> <?= h($j['location']) ?></div>
+      <div><strong>Requester:</strong> <?= $j['salesman'] ? h($j['salesman']) : '—' ?></div>
+      <div><strong>Service Type:</strong> <?= $j['service_type'] ? h($j['service_type']) : '—' ?></div>
       <div><strong>Vehicles:</strong> <?= fmtVehicles($j) ?></div>
       <div><strong>Labor:</strong> <?= fmtLabor($j) ?></div>
+      <div><strong>Equipment:</strong> <?= $j['equipment'] ? h($j['equipment']) : '—' ?></div>
+      <div><strong>Weight:</strong> <?= fmtWeight($j['weight'] ?? null) ?></div>
       <div><strong>Notes:</strong> <?= nl2br(h($j['day_notes'])) ?></div>
       <div><strong>Attachments:</strong> <?= listAttachments($j['uid']) ?></div>
     </div>
