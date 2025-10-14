@@ -2,51 +2,61 @@
     {
         "key": "tractors",
         "label": "TTrailers",
-        "enabled": true
+        "enabled": false
     },
     {
         "key": "bobtails",
         "label": "Bobtails",
-        "enabled": true
+        "enabled": false
     },
     {
         "key": "movers",
         "label": "Movers",
-        "enabled": true
+        "enabled": false
     },
     {
         "key": "drivers",
         "label": "Drivers",
-        "enabled": true
+        "enabled": false
     },
     {
         "key": "installers",
         "label": "Installers",
-        "enabled": true
+        "enabled": false
     },
     {
         "key": "pctechs",
         "label": "PC Techs",
-        "enabled": true
+        "enabled": false
     },
     {
         "key": "supervisors",
         "label": "Supervisors",
-        "enabled": true
+        "enabled": false
     },
     {
         "key": "project_managers",
         "label": "Project Managers",
-        "enabled": true
+        "enabled": false
     },
     {
         "key": "crew_transport",
         "label": "Crew Transport",
-        "enabled": true
+        "enabled": false
     },
     {
         "key": "electricians",
         "label": "Electricians",
+        "enabled": false
+    },
+    {
+        "key": "weight",
+        "label": "Shipment Weight",
+        "enabled": true
+    },
+    {
+        "key": "equipment",
+        "label": "Equipment",
         "enabled": true
     }
 ]

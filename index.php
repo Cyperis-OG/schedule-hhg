@@ -48,6 +48,7 @@ if ($dayFieldsJson === false) $dayFieldsJson = '[]';
         <a class="btn sm" href="./admin/">Admin</a>
         <button class="btn sm" type="button" onclick="window.open('./view_contractor_schedule.php?contractor_id=master&date=' + encodeURIComponent(window.getViewYMD ? window.getViewYMD() : '<?= $initDate ?>'), '_blank')">Master List</button>
         <button class="btn sm" type="button" onclick="window.open('./map.php?date=' + encodeURIComponent(window.getViewYMD ? window.getViewYMD() : '<?= $initDate ?>'), '_blank')">Map</button>
+        <button class="btn sm" type="button" id="importBtn">Import Schedule</button>
         <a class="btn sm" href="logout.php">Logout</a>
       <?php else: ?>
         <a class="btn sm" href="login.php">Admin Login</a>
@@ -99,6 +100,7 @@ if ($dayFieldsJson === false) $dayFieldsJson = '[]';
   <?php if ($isAdmin): ?>
   <script src="./assets/js/quickadd.js"></script>       <!-- add job (multi-day) -->
   <script src="./assets/js/editjob.js"></script>        <!-- edit job (multi-day) -->
+  <script src="./assets/js/import.js"></script>         <!-- import jobs from CSV -->
   <?php endif; ?>
 
 </body>
