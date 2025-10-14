@@ -25,7 +25,14 @@
         },
         {
           "key": "salesman",
-          "label": "Salesman / Primary Contact",
+          "label": "Requester Name",
+          "type": "text",
+          "required": false,
+          "quick": true
+        },
+        {
+          "key": "service_type",
+          "label": "Service Type",
           "type": "text",
           "required": false,
           "quick": true
