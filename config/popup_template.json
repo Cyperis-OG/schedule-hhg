@@ -20,10 +20,24 @@
       ]
     },
     {
+      "label": "Requester",
+      "rows": [
+        ["Requester Name", "{{jobs.salesman}}"],
+        ["Service Type",   "{{jobs.service_type}}"]
+      ]
+    },
+    {
       "label": "Vehicles",
       "rows": [
         ["TTrailers", "{{job_days.tractors}}"],
         ["Bobtails", "{{job_days.bobtails}}"]
+      ]
+    },
+    {
+      "label": "Equipment",
+      "rows": [
+        ["Equipment", "{{job_days.equipment}}"],
+        ["Weight",    "{{job_days.weight}}"]
       ]
     },
     {
