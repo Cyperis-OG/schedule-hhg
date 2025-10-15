@@ -45,7 +45,7 @@ if (!$payload || empty($payload['job']) || empty($payload['days']) || !is_array(
   exit;
 }
 
-$job  = $payload['job'];   // expects: title (customer), job_number, salesman, status
+$job  = $payload['job'];   // expects: title (customer), job_number, salesman/requester, service_type, status
 $days = $payload['days'];  // array of per-day objects
 
 /* ---------- Small helpers ---------- */
@@ -120,17 +120,22 @@ try {
   */
   $job_uid = uid26();
 
-  $sqlJob = "INSERT INTO jobs (uid, title, job_number, salesman, status, notes, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, NOW())";
+  $sqlJob = "INSERT INTO jobs (uid, title, job_number, salesman, service_type, status, notes, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
   $st = must_prepare($mysqli, $sqlJob);
 
   $title  = $job['title']      ?? '';               // Customer is the title
   $jobnum = $job['job_number'] ?? null;
   $sales  = $job['salesman']   ?? null;
+  $serviceType = $job['service_type'] ?? null;
+  if ($serviceType !== null) {
+    $serviceType = trim($serviceType);
+    if ($serviceType === '') $serviceType = null;
+  }
   $status = $job['status']     ?? 'scheduled';
   $notes  = null;                                    // job-level notes disabled (per your request)
 
-  if (!$st->bind_param('ssssss', $job_uid, $title, $jobnum, $sales, $status, $notes)) {
+  if (!$st->bind_param('sssssss', $job_uid, $title, $jobnum, $sales, $serviceType, $status, $notes)) {
     throw new Exception('bind_param failed (jobs): '.$st->error);
   }
   if (!$st->execute()) throw new Exception('Execute failed (jobs): '.$st->error);
@@ -141,9 +146,10 @@ try {
                uid, job_uid, work_date, start_time, end_time,
                contractor_id, location,
                tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, crew_transport, electricians,
+               equipment, weight,
                day_notes, status, created_at
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
-  $types = 'sssssis' . str_repeat('i', 10) . 'ss';
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
+  $types = 'sssssis' . str_repeat('i', 10) . 'sdss';
 
   $stDay = must_prepare($mysqli, $sqlDay);
 
@@ -171,12 +177,17 @@ try {
     $crew          = (int)($d['crew_transport'] ?? 0);
     $elec          = (int)($d['electricians'] ?? 0);
 
+    $equipmentRaw  = trim((string)($d['equipment'] ?? ''));
+    $equipment     = $equipmentRaw === '' ? null : $equipmentRaw;
+    $weightVal     = trim((string)($d['weight'] ?? ''));
+    $weight        = $weightVal === '' ? null : (float)$weightVal;
     $day_notes     = $d['day_notes'] ?? null;
     $dstatus       = $d['status'] ?? $status;
 
     $params = [$day_uid, $job_uid, $work_date, $start_time, $end_time,
       $contractor_id, $location,
       $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
+      $equipment, $weight,
       $day_notes, $dstatus];
 
     if (!$stDay->bind_param($types, ...$params)) {
