@@ -40,12 +40,15 @@ if (!$row = $res->fetch_assoc()) {
 
 $statusLabels = [
     'placeholder'      => 'Placeholder',
+    'preplanned'       => 'Preplanned',
     'needs_paperwork'  => 'Scheduled - Needs Paperwork',
     'scheduled'        => 'Scheduled',
+    'assigned'         => 'Assigned',
     'dispatched'       => 'Dispatched',
     'canceled'         => 'Canceled',
     'completed'        => 'Completed',
-    'paid'             => 'Paid'
+    'paid'             => 'Paid',
+    'duplicate'        => 'Duplicate (Needs Review)'
 ];
 $row['status']      = $statusLabels[strtolower($row['status']      ?? '')] ?? ($row['status'] ?? '');
 $row['job_status']  = $statusLabels[strtolower($row['job_status']  ?? '')] ?? ($row['job_status'] ?? '');
