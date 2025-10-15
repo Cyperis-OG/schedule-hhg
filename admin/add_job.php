@@ -143,7 +143,15 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
       const dayNotes = sec.fields?.find(f => f.key === 'day_notes');
       sec.fields = (sec.fields || []).filter(f => f.key !== 'day_notes');
       DAY_FIELDS.forEach(df => {
-        const f = { key: df.key, label: df.label, type: 'number', default: 0, quick: true };
+        const inputType = (df.input || df.type) === 'text' ? 'text' : 'number';
+        const f = {
+          key: df.key,
+          label: df.label,
+          type: inputType,
+          default: typeof df.default !== 'undefined' ? df.default : (inputType === 'text' ? '' : 0),
+          quick: true
+        };
+        if (df.step) f.step = df.step;
         if (df.enabled === false) f.enabled = false;
         sec.fields.push(f);
       });
@@ -271,7 +279,7 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
             (j.results||[]).forEach(item=>{
               const it=document.createElement('div'); it.className='ac-item';
               it.innerHTML=`<div><strong>${esc(item.name)}</strong></div>
-                             <div class="help">Prefers: ${esc(item.preferred_contractor_name || '—')} · Salesman: ${esc(item.default_salesman || '—')}</div>`;
+                             <div class="help">Prefers: ${esc(item.preferred_contractor_name || '—')} · Requester: ${esc(item.default_salesman || '—')}</div>`;
               it.addEventListener('click', ()=>{
                 input.value=item.name; list.style.display='none';
                 const loc=document.querySelector('input[name="day.0.location"]');
@@ -306,7 +314,7 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
         const ac=document.createElement('div'); ac.className='ac';
         input=document.createElement('input');
         input.type='text'; input.name=namePrefix; input.autocomplete='off';
-        input.placeholder=f.placeholder||'Start typing a salesman…';
+        input.placeholder=f.placeholder||'Start typing a requester…';
         const list=document.createElement('div'); list.className='ac-list';
         ac.appendChild(input); ac.appendChild(list); wrap.appendChild(ac);
         let tId=null;
@@ -335,6 +343,11 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
         input.placeholder = f.placeholder || '';
         if (f.type === 'date' && !def) input.value = new Date().toISOString().slice(0,10);
         else if (typeof def === 'string' || typeof def === 'number') input.value = def;
+      }
+
+      if (f.type === 'number') {
+        if (typeof f.min !== 'undefined') input.min = f.min;
+        if (f.step) input.step = f.step;
       }
 
       if (requiredAttr) input.required = true;
@@ -461,7 +474,18 @@ $dayFieldsJson = file_exists($fieldsPath) ? file_get_contents($fieldsPath) : '[]
         const el = base(f.key);
         if (!el) return;
         let val = el.value || '';
-        if (f.type === 'number') val = Number(val || 0);
+        if (f.type === 'number') {
+          if (val === '') {
+            val = f.default === '' ? null : 0;
+          } else {
+            const num = Number(val);
+            val = Number.isFinite(num) ? num : (f.default === '' ? null : 0);
+          }
+        }
+        else if (f.type === 'text') {
+          const trimmed = val.trim();
+          val = trimmed === '' ? null : trimmed;
+        }
         else if (f.type === 'contractor') val = Number(val || 0) || null;
         else if (f.type === 'time') val = (val || '') + ':00';
         day[f.key] = val;
