@@ -17,18 +17,30 @@
   const MAX_DAYS = Number(CFG.MAX_DAYS || 5);
 
   const DEFAULT_FIELDS = [
-    { key: 'tractors',         label: 'TTrailers' },
-    { key: 'bobtails',         label: 'Bobtails' },
-    { key: 'movers',           label: 'Movers' },
-    { key: 'drivers',          label: 'Drivers' },
-    { key: 'installers',       label: 'Installers' },
-    { key: 'pctechs',          label: 'PC Techs' },
-    { key: 'supervisors',      label: 'Supervisors' },
-    { key: 'project_managers', label: 'Project Managers' },
-    { key: 'crew_transport',   label: 'Crew Transport' },
-    { key: 'electricians',     label: 'Electricians' }
+    { key: 'tractors',         label: 'TTrailers',        input: 'number' },
+    { key: 'bobtails',         label: 'Bobtails',         input: 'number' },
+    { key: 'movers',           label: 'Movers',           input: 'number' },
+    { key: 'drivers',          label: 'Drivers',          input: 'number' },
+    { key: 'installers',       label: 'Installers',       input: 'number' },
+    { key: 'pctechs',          label: 'PC Techs',         input: 'number' },
+    { key: 'supervisors',      label: 'Supervisors',      input: 'number' },
+    { key: 'project_managers', label: 'Project Managers', input: 'number' },
+    { key: 'crew_transport',   label: 'Crew Transport',   input: 'number' },
+    { key: 'electricians',     label: 'Electricians',     input: 'number' },
+    { key: 'equipment',        label: 'Equipment',        input: 'text' },
+    { key: 'weight',           label: 'Weight',           input: 'number', step: '0.01', default: '' }
   ];
-  const DAY_FIELDS = (CFG.DAY_FIELDS || DEFAULT_FIELDS).filter(f => f.enabled !== false);
+
+  function normalizeDayField(f){
+    const input = (f.input || f.type || '').toLowerCase() === 'text' ? 'text' : 'number';
+    const step = f.step ?? (input === 'number' ? (f.decimals ? '0.01' : '1') : undefined);
+    const defaultValue = f.default ?? (input === 'text' ? '' : 0);
+    return { ...f, input, step, defaultValue };
+  }
+
+  const DAY_FIELDS = (CFG.DAY_FIELDS || DEFAULT_FIELDS)
+    .filter(f => f.enabled !== false)
+    .map(normalizeDayField);
   const LEGACY_MAP = {
     tractors: 'NumTractorTrailers',
     bobtails: 'NumBobtails',
@@ -118,7 +130,18 @@
     const counts={};
     DAY_FIELDS.forEach(f=>{
       const legacy=LEGACY_MAP[f.key];
-      counts[f.key]=Number(d[f.key] ?? (legacy ? d[legacy] : 0) ?? 0);
+      const raw = d[f.key] ?? (legacy ? d[legacy] : undefined);
+      if (f.input === 'text') {
+        counts[f.key] = raw != null ? String(raw) : '';
+      } else {
+        const val = raw ?? f.defaultValue;
+        if (val === '' || val === null || typeof val === 'undefined') {
+          counts[f.key] = '';
+        } else {
+          const num = Number(val);
+          counts[f.key] = Number.isFinite(num) ? num : '';
+        }
+      }
     });
     return {
       uid: d.Id || d.day_uid || null,
@@ -160,11 +183,15 @@
           </div>
 
           <div class="qa-row">
-            <label>Salesman / Primary Contact</label>
+            <label>Requester Name</label>
             <div class="ac">
               <input name="job.salesman" type="text" value="${esc(job.salesman || "")}" placeholder="Optional" autocomplete="off" />
               <div class="ac-list"></div>
             </div>
+          </div>
+          <div class="qa-row">
+            <label>Service Type</label>
+            <input name="job.service_type" type="text" value="${esc(job.service_type || "")}" placeholder="Optional" />
           </div>
           <div class="qa-row">
             <label>Job Number</label>
@@ -226,7 +253,7 @@
           const j=await r.json(); custList.innerHTML='';
           (j.results||[]).forEach(item=>{
             const it=document.createElement('div'); it.className='ac-item';
-            it.innerHTML=`<div><strong>${esc(item.name)}</strong></div><div class="help">Prefers: ${esc(item.preferred_contractor_name||'—')} · Salesman: ${esc(item.default_salesman||'—')}</div>`;
+            it.innerHTML=`<div><strong>${esc(item.name)}</strong></div><div class="help">Prefers: ${esc(item.preferred_contractor_name||'—')} · Requester: ${esc(item.default_salesman||'—')}</div>`;
             it.addEventListener('click',()=>{
               custInput.value=item.name; custList.style.display='none';
               const loc=host.querySelector('input[name="day.0.location"]');
@@ -311,7 +338,10 @@
             ${DAY_FIELDS.map(f => `
               <div class="qa-row">
                 <label>${esc(f.label)}</label>
-                <input name="day.${index}.${f.key}" type="number" min="0" step="1" value="${Number(initial[f.key] ?? 0)}" />
+                ${f.input === 'text'
+                  ? `<input name="day.${index}.${f.key}" type="text" value="${esc(initial[f.key] ?? '')}" placeholder="Optional" />`
+                  : `<input name="day.${index}.${f.key}" type="number" min="0" step="${esc(f.step || '1')}" value="${(initial[f.key] === '' || initial[f.key] == null) ? '' : Number(initial[f.key])}" />`
+                }
               </div>
             `).join("")}
           </div>
@@ -399,7 +429,18 @@
       const card=daysWrap.children[idx]; if(!card) return;
       const g=(n)=>card.querySelector(`[name=\"day.${idx}.${n}\"]`)?.value ?? "";
       const d=new Date(g("date")); d.setDate(d.getDate()+1);
-      const counts={}; DAY_FIELDS.forEach(f=>{ counts[f.key]=g(f.key); });
+      const counts={};
+      DAY_FIELDS.forEach(f=>{
+        const raw = g(f.key);
+        if (f.input === 'text') {
+          counts[f.key] = raw;
+        } else if (raw === '' || raw == null) {
+          counts[f.key] = f.defaultValue === '' ? '' : 0;
+        } else {
+          const num = Number(raw);
+          counts[f.key] = Number.isFinite(num) ? num : (f.defaultValue === '' ? '' : 0);
+        }
+      });
       addDay({
         uid: null,
         date: toYMD(d),
@@ -444,7 +485,7 @@
         startS = tripleTo24h(g("start_h"), g("start_m"), g("start_ap"));
         endS   = tripleTo24h(g("end_h"),   g("end_m"),   g("end_ap"));
       }
-      const defaults={}; DAY_FIELDS.forEach(f=>defaults[f.key]=0);
+      const defaults={}; DAY_FIELDS.forEach(f=>defaults[f.key]=f.defaultValue);
       addDay({
         uid:null, date: nextDate, start24:startS, end24:endS,
         location:"", ...defaults, notes:""
@@ -490,6 +531,7 @@
         customer_name: customer,
         job_number: get("job.job_number").trim() || null,
         salesman: get("job.salesman").trim() || null,
+        service_type: get("job.service_type").trim() || null,
         status
       };
 
@@ -510,7 +552,18 @@
           status,
           meta:{},
         };
-        DAY_FIELDS.forEach(f=>{ dayObj[f.key]=+(g(f.key)||0); });
+        DAY_FIELDS.forEach(f=>{
+          const raw = g(f.key);
+          if (f.input === 'text') {
+            const trimmed = (raw || '').trim();
+            dayObj[f.key] = trimmed === '' ? null : trimmed;
+          } else if (raw === '' || raw == null) {
+            dayObj[f.key] = f.defaultValue === '' ? null : 0;
+          } else {
+            const num = Number(raw);
+            dayObj[f.key] = Number.isFinite(num) ? num : (f.defaultValue === '' ? null : 0);
+          }
+        });
         days.push(dayObj);
         const bol=card.querySelector(`[name="day.${idx}.bol_files"]`)?.files;
         const ext=card.querySelector(`[name="day.${idx}.extra_files"]`)?.files;
