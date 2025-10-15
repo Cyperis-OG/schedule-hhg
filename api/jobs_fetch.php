@@ -80,6 +80,8 @@ $sqlE = "SELECT
            jd.uid        AS id,
            j.title       AS title,
            j.job_number  AS job_number,
+           j.salesman    AS requester_name,
+           j.service_type AS service_type,
            jd.work_date,
            jd.start_time,
            jd.end_time,
@@ -96,6 +98,8 @@ $sqlE = "SELECT
            jd.project_managers,
            jd.crew_transport,
            jd.electricians,
+           jd.equipment,
+           jd.weight,
            jd.day_notes
          FROM job_days jd
          LEFT JOIN jobs j ON j.uid = jd.job_uid
@@ -130,6 +134,8 @@ if ($stmt = $mysqli->prepare($sqlE)) {
       'Subject'        => trim($row['title'] . ($row['job_number'] ? " ({$row['job_number']})" : '')),
       'Customer'       => $row['title'],
       'JobNumber'      => $row['job_number'],
+      'RequesterName'  => $row['requester_name'],
+      'ServiceType'    => $row['service_type'],
       'StartTime'      => isoDT($row['work_date'], $row['start_time']),
       'EndTime'        => isoDT($row['work_date'], $row['end_time']),
       'ContractorId'   => is_null($row['contractor_id']) ? null : (int)$row['contractor_id'],
@@ -145,6 +151,8 @@ if ($stmt = $mysqli->prepare($sqlE)) {
       'project_managers'=> (int)$row['project_managers'],
       'crew_transport'  => (int)$row['crew_transport'],
       'electricians'    => (int)$row['electricians'],
+      'equipment'       => $row['equipment'],
+      'weight'          => is_null($row['weight']) ? null : (float)$row['weight'],
       'day_notes'       => $row['day_notes']
     ];
     if ($files['bol'] || $files['extra']) {
