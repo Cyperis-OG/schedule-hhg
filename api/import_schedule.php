@@ -11,10 +11,30 @@ if (($_SESSION['role'] ?? '') !== 'admin') {
     exit;
 }
 
-$file = $_FILES['xlsx'] ?? null;
-if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+$file = null;
+foreach (['xlsx', 'csv', 'file'] as $field) {
+    if (isset($_FILES[$field])) {
+        $file = $_FILES[$field];
+        break;
+    }
+}
+
+if (!$file) {
     http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'missing file']);
+    echo json_encode(['ok' => false, 'error' => 'missing file upload']);
+    exit;
+}
+
+if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => upload_error_message($file['error'] ?? UPLOAD_ERR_NO_FILE)]);
+    exit;
+}
+
+$originalName = (string)($file['name'] ?? '');
+if ($originalName !== '' && !preg_match('/\.xlsx$/i', $originalName)) {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'please upload an .xlsx spreadsheet']);
     exit;
 }
 
@@ -190,6 +210,26 @@ function must_prepare(mysqli $db, string $sql): mysqli_stmt {
 
 function uid26(): string {
     return bin2hex(random_bytes(13));
+}
+
+function upload_error_message(int $code): string {
+    switch ($code) {
+        case UPLOAD_ERR_INI_SIZE:
+        case UPLOAD_ERR_FORM_SIZE:
+            return 'uploaded file is too large';
+        case UPLOAD_ERR_PARTIAL:
+            return 'upload did not complete';
+        case UPLOAD_ERR_NO_FILE:
+            return 'no file was uploaded';
+        case UPLOAD_ERR_NO_TMP_DIR:
+            return 'temporary upload directory is missing';
+        case UPLOAD_ERR_CANT_WRITE:
+            return 'failed to write uploaded file to disk';
+        case UPLOAD_ERR_EXTENSION:
+            return 'upload blocked by PHP extension';
+        default:
+            return 'file upload failed';
+    }
 }
 
 function load_xlsx_rows(string $path): array {
