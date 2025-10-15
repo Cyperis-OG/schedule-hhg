@@ -60,12 +60,15 @@ function listAttachments($uid){
     .date { font-weight:bold; }
     .job-btn { width:100%; padding:15px; margin:8px 0; font-size:1.1rem; border:none; border-radius:4px; cursor:pointer; }
     .job-btn.status-placeholder { background:#b0b0b0; color:#fff; }
+    .job-btn.status-preplanned { background:#6b7280; color:#fff; }
     .job-btn.status-needs_paperwork { background:#4b9dd3; color:#fff; }
     .job-btn.status-scheduled { background:#003366; color:#fff; }
+    .job-btn.status-assigned { background:#2563eb; color:#fff; }
     .job-btn.status-dispatched { background:#e68a00; color:#fff; }
     .job-btn.status-canceled { background:#800020; color:#fff; }
     .job-btn.status-completed { background:#10b981; color:#fff; }
     .job-btn.status-paid { background:#10b981; color:#fff; border:2px solid #d4af37; }
+    .job-btn.status-duplicate { background:#dc2626; color:#fff; border:2px solid #7f1d1d; }
     .job-details { padding:10px; background:#f0f0f0; border-radius:8px; }
   </style>
 </head>
