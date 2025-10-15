@@ -1,6 +1,7 @@
 <?php
 // api/import_schedule.php
-// Import jobs from uploaded CSV file.
+// Import jobs from an uploaded XLSX file using the column mapping provided by HHG.
+
 header('Content-Type: application/json');
 require_once __DIR__ . '/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
@@ -10,106 +11,141 @@ if (($_SESSION['role'] ?? '') !== 'admin') {
     exit;
 }
 
-if (!isset($_FILES['csv']) || $_FILES['csv']['error'] !== UPLOAD_ERR_OK) {
+$file = $_FILES['xlsx'] ?? null;
+if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'missing file']);
     exit;
 }
 
-$fh = fopen($_FILES['csv']['tmp_name'], 'r');
-if (!$fh) {
+try {
+    $rows = load_xlsx_rows($file['tmp_name']);
+} catch (Throwable $e) {
     http_response_code(400);
-    echo json_encode(['ok' => false, 'error' => 'unable to open file']);
+    echo json_encode(['ok' => false, 'error' => 'invalid spreadsheet: ' . $e->getMessage()]);
     exit;
 }
+
+if (!$rows || count($rows) < 2) {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'spreadsheet has no data']);
+    exit;
+}
+
+// Remove header row
+array_shift($rows);
 
 $mysqli->begin_transaction();
 
 try {
     $imported = 0;
-    $header = fgetcsv($fh); // skip header row
 
-    $stJob = $mysqli->prepare("INSERT INTO jobs (uid,title,job_number,salesman,status,notes,meta,created_at) VALUES (?,?,?,?,?,?,?,NOW())");
-    $stDay = $mysqli->prepare("INSERT INTO job_days (uid,job_uid,work_date,start_time,end_time,contractor_id,location,tractors,bobtails,movers,drivers,installers,pctechs,supervisors,project_managers,crew_transport,electricians,day_notes,status,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())");
-    $stCtr = $mysqli->prepare("SELECT id FROM contractors WHERE LOWER(name) = LOWER(?) LIMIT 1");
-    $defaultCtr = null;
-    if ($res = $mysqli->query("SELECT id FROM contractors WHERE LOWER(name) = 'will advise' LIMIT 1")) {
-        if ($row = $res->fetch_assoc()) $defaultCtr = (int)$row['id'];
-        $res->free();
-    }
+    $sqlJob = "INSERT INTO jobs (uid, title, job_number, salesman, service_type, status, notes, created_at)
+               VALUES (?,?,?,?,?,?,?,NOW())";
+    $sqlDay = "INSERT INTO job_days (
+                  uid, job_uid, work_date, start_time, end_time,
+                  contractor_id, location,
+                  tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, crew_transport, electricians,
+                  equipment, weight,
+                  day_notes, status, created_at
+               ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
 
-    while (($row = fgetcsv($fh)) !== false) {
-        if (!$row) continue;
-        $status      = trim($row[0]  ?? ''); // A: Status
-        $dateStr     = trim($row[2]  ?? ''); // C: Date
-        $jobnum      = trim($row[3]  ?? ''); // D: Order #
-        $customer    = trim($row[4]  ?? ''); // E: Customer Name
-        $weight      = trim($row[6]  ?? ''); // G: Weight
-        $arrival     = trim($row[8]  ?? ''); // I: Job Time
-        $locationRaw = trim($row[9]  ?? ''); // J: Location
-        $equipment   = trim($row[11] ?? ''); // L: Equipment
-        $crewLead    = trim($row[13] ?? ''); // N: Contractor Name
-        $notes       = trim($row[17] ?? ''); // R: Notes
-        $salesman    = trim($row[19] ?? ''); // T: Salesman
+    $stJob = must_prepare($mysqli, $sqlJob);
+    $stDay = must_prepare($mysqli, $sqlDay);
 
-        if ($customer === '' || $dateStr === '') continue; // minimal required
+    $defaultCtr = lookup_default_contractor($mysqli);
 
-        $work_date = date('Y-m-d', strtotime($dateStr));
-        $start_time = '08:00:00';
-        $end_time   = '12:00:00';
-        if ($arrival !== '') {
-            $parts = explode('-', $arrival);
-            if (count($parts) === 2) {
-                $start_time = date('H:i:00', strtotime($parts[0]));
-                $end_time   = date('H:i:00', strtotime($parts[1]));
-            }
+    foreach ($rows as $row) {
+        $statusRaw      = trim((string)($row['A'] ?? ''));
+        $dateRaw        = trim((string)($row['C'] ?? ''));
+        $jobNumberRaw   = trim((string)($row['D'] ?? ''));
+        $customer       = trim((string)($row['E'] ?? ''));
+        $serviceTypeRaw = trim((string)($row['F'] ?? ''));
+        $weightRaw      = trim((string)($row['G'] ?? ''));
+        $timeRaw        = trim((string)($row['I'] ?? ''));
+        $locationRaw    = trim((string)($row['J'] ?? ''));
+        $equipmentRaw   = trim((string)($row['K'] ?? ''));
+        $contractorRaw  = trim((string)($row['L'] ?? ''));
+        $dayNotesRaw    = trim((string)($row['M'] ?? ''));
+        $requesterRaw   = trim((string)($row['N'] ?? ''));
+
+        if ($customer === '' && $dateRaw === '' && $jobNumberRaw === '' && $contractorRaw === '') {
+            // Completely empty row -> skip
+            continue;
         }
 
-        $contractor_id = null;
-        if ($crewLead !== '') {
-            $stCtr->bind_param('s', $crewLead);
-            $stCtr->execute();
-            $stCtr->bind_result($cid);
-            if ($stCtr->fetch()) $contractor_id = (int)$cid;
-            $stCtr->free_result();
-        }
-        if ($contractor_id === null && $defaultCtr !== null) {
-            $contractor_id = $defaultCtr;
+        $workDate = parse_excel_date($dateRaw);
+        if ($workDate === null) {
+            // No usable date, skip row
+            continue;
         }
 
-        $job_uid = bin2hex(random_bytes(13));
-        $day_uid = bin2hex(random_bytes(13));
+        if ($customer === '') {
+            continue; // Require a customer name to build the job title
+        }
 
-        $meta = [];
-        if ($weight !== '') $meta['weight'] = $weight;
-        if ($equipment !== '') $meta['equipment'] = $equipment;
-        $metaJson = $meta ? json_encode($meta) : null;
+        [$startTime, $endTime] = parse_time_range($timeRaw);
 
-        $job_number = $jobnum !== '' ? $jobnum : null;
-        $salesman_val = $salesman !== '' ? $salesman : null;
-        $status_slug = strtolower(str_replace([' ', '-'], '_', $status));
-        $valid_statuses = ['placeholder','needs_paperwork','scheduled','dispatched','canceled','completed','paid'];
-        $status_val = $status_slug !== '' && in_array($status_slug, $valid_statuses, true) ? $status_slug : 'scheduled';
-        $notes_val = $notes !== '' ? $notes : null;
+        $contractorId = resolve_contractor($mysqli, normalize_contractor_name($contractorRaw));
+        if ($contractorId === null && $defaultCtr !== null) {
+            $contractorId = $defaultCtr;
+        }
 
-        $stJob->bind_param('sssssss', $job_uid, $customer, $job_number, $salesman_val, $status_val, $notes_val, $metaJson);
-        if (!$stJob->execute()) throw new Exception('job insert failed: ' . $stJob->error);
+        $jobUid = uid26();
+        $dayUid = uid26();
 
-        $day_notes = null; // notes stored at job level
+        $jobNumber = $jobNumberRaw !== '' ? $jobNumberRaw : null;
+        $requester = $requesterRaw !== '' ? $requesterRaw : null;
+        $serviceType = $serviceTypeRaw !== '' ? $serviceTypeRaw : null;
+
+        $status = normalize_status($statusRaw);
+
+        $notes = null;
+        if (!$stJob->bind_param('sssssss', $jobUid, $customer, $jobNumber, $requester, $serviceType, $status, $notes)) {
+            throw new Exception('bind_param failed for job: ' . $stJob->error);
+        }
+        if (!$stJob->execute()) {
+            throw new Exception('job insert failed: ' . $stJob->error);
+        }
+
+        $weight = parse_weight($weightRaw);
+        $equipment = $equipmentRaw !== '' ? $equipmentRaw : null;
+        $dayNotes = $dayNotesRaw !== '' ? $dayNotesRaw : null;
         $location = $locationRaw !== '' ? $locationRaw : null;
-        $tractors = 0; $bobtails = 0; $movers = 0; $drivers = 0;
-        $installers = 0; $pctechs = 0; $supervisors = 0; $project_managers = 0;
-        $crew_transport = 0; $electricians = 0;
 
-        $stDay->bind_param(
-            'sssssisiiiiiiiiiiss',
-            $day_uid,
-            $job_uid,
-            $work_date,
-            $start_time,
-            $end_time,
-            $contractor_id,
-            $location,
+        $tractors = 0;
+        $bobtails = 0;
+        $movers = 0;
+        $drivers = 0;
+        $installers = 0;
+        $pctechs = 0;
+        $supervisors = 0;
+        $project_managers = 0;
+        $crew_transport = 0;
+        $electricians = 0;
+
+        $dayUidVar = $dayUid;
+        $jobUidVar = $jobUid;
+        $workDateVar = $workDate;
+        $startVar = $startTime;
+        $endVar = $endTime;
+        $contractorVar = $contractorId;
+        $locationVar = $location;
+        $equipmentVar = $equipment;
+        $weightVar = $weight;
+        $dayNotesVar = $dayNotes;
+        $statusVar = $status;
+
+        $types = 'sssssis' . str_repeat('i', 10) . 'sdss';
+        if (!$stDay->bind_param(
+            $types,
+            $dayUidVar,
+            $jobUidVar,
+            $workDateVar,
+            $startVar,
+            $endVar,
+            $contractorVar,
+            $locationVar,
             $tractors,
             $bobtails,
             $movers,
@@ -120,24 +156,307 @@ try {
             $project_managers,
             $crew_transport,
             $electricians,
-            $day_notes,
-            $status_val
-        );
-        if (!$stDay->execute()) throw new Exception('day insert failed: ' . $stDay->error);
+            $equipmentVar,
+            $weightVar,
+            $dayNotesVar,
+            $statusVar
+        )) {
+            throw new Exception('bind_param failed for day: ' . $stDay->error);
+        }
+        if (!$stDay->execute()) {
+            throw new Exception('day insert failed: ' . $stDay->error);
+        }
 
         $imported++;
     }
 
     $stJob->close();
     $stDay->close();
-    $stCtr->close();
-    fclose($fh);
     $mysqli->commit();
     echo json_encode(['ok' => true, 'imported' => $imported]);
 } catch (Throwable $e) {
-    fclose($fh);
     $mysqli->rollback();
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
 }
-?>
+
+function must_prepare(mysqli $db, string $sql): mysqli_stmt {
+    $stmt = $db->prepare($sql);
+    if (!$stmt) {
+        throw new Exception('prepare failed: ' . $db->error . ' | SQL: ' . $sql);
+    }
+    return $stmt;
+}
+
+function uid26(): string {
+    return bin2hex(random_bytes(13));
+}
+
+function load_xlsx_rows(string $path): array {
+    $zip = new ZipArchive();
+    if ($zip->open($path) !== true) {
+        throw new Exception('unable to open XLSX archive');
+    }
+
+    $sheetPath = detect_first_sheet_path($zip);
+    $sharedStrings = load_shared_strings($zip);
+
+    $sheetData = $zip->getFromName($sheetPath);
+    if ($sheetData === false) {
+        throw new Exception('unable to read first worksheet');
+    }
+
+    $sheetXml = @simplexml_load_string($sheetData);
+    if ($sheetXml === false) {
+        throw new Exception('invalid worksheet XML');
+    }
+
+    $rows = [];
+    foreach ($sheetXml->sheetData->row as $row) {
+        $cells = [];
+        foreach ($row->c as $cell) {
+            $ref = strtoupper(preg_replace('/\d+/', '', (string)$cell['r']));
+            $type = (string)$cell['t'];
+
+            $value = '';
+            if ($type === 's') {
+                $idx = (int)$cell->v;
+                $value = $sharedStrings[$idx] ?? '';
+            } elseif ($type === 'inlineStr') {
+                $value = read_inline_str($cell);
+            } else {
+                $value = isset($cell->v) ? (string)$cell->v : '';
+            }
+
+            $cells[$ref] = $value;
+        }
+        $rows[] = $cells;
+    }
+
+    $zip->close();
+
+    return $rows;
+}
+
+function detect_first_sheet_path(ZipArchive $zip): string {
+    $workbookXml = $zip->getFromName('xl/workbook.xml');
+    if ($workbookXml === false) {
+        return 'xl/worksheets/sheet1.xml';
+    }
+    $workbook = @simplexml_load_string($workbookXml);
+    if ($workbook === false) {
+        return 'xl/worksheets/sheet1.xml';
+    }
+    $sheets = $workbook->sheets->sheet ?? [];
+    if (!count($sheets)) {
+        return 'xl/worksheets/sheet1.xml';
+    }
+    $first = $sheets[0];
+    $rid = (string)$first['r:id'];
+    if ($rid === '') {
+        return 'xl/worksheets/sheet1.xml';
+    }
+    $relsXml = $zip->getFromName('xl/_rels/workbook.xml.rels');
+    if ($relsXml === false) {
+        return 'xl/worksheets/sheet1.xml';
+    }
+    $rels = @simplexml_load_string($relsXml);
+    if ($rels === false) {
+        return 'xl/worksheets/sheet1.xml';
+    }
+    foreach ($rels->Relationship as $rel) {
+        if ((string)$rel['Id'] === $rid) {
+            $target = (string)$rel['Target'];
+            if ($target !== '') {
+                if (strpos($target, 'worksheets/') === 0) {
+                    return 'xl/' . $target;
+                }
+                return 'xl/' . ltrim($target, '/');
+            }
+        }
+    }
+    return 'xl/worksheets/sheet1.xml';
+}
+
+function load_shared_strings(ZipArchive $zip): array {
+    $shared = [];
+    $xml = $zip->getFromName('xl/sharedStrings.xml');
+    if ($xml === false) {
+        return $shared;
+    }
+    $doc = @simplexml_load_string($xml);
+    if ($doc === false) {
+        return $shared;
+    }
+    foreach ($doc->si as $si) {
+        $text = '';
+        if (isset($si->t)) {
+            $text .= (string)$si->t;
+        }
+        if (isset($si->r)) {
+            foreach ($si->r as $r) {
+                $text .= (string)$r->t;
+            }
+        }
+        $shared[] = $text;
+    }
+    return $shared;
+}
+
+function read_inline_str(\SimpleXMLElement $cell): string {
+    $text = '';
+    if (isset($cell->is->t)) {
+        $text .= (string)$cell->is->t;
+    }
+    if (isset($cell->is->r)) {
+        foreach ($cell->is->r as $run) {
+            $text .= (string)$run->t;
+        }
+    }
+    return $text;
+}
+
+function parse_excel_date($value): ?string {
+    if ($value === '' || $value === null) {
+        return null;
+    }
+    if (is_numeric($value)) {
+        $base = DateTime::createFromFormat('Y-m-d H:i:s', '1899-12-30 00:00:00', new DateTimeZone('UTC'));
+        if ($base) {
+            $base->modify('+' . (int)$value . ' days');
+            return $base->format('Y-m-d');
+        }
+    }
+    $ts = strtotime((string)$value);
+    if ($ts === false) {
+        return null;
+    }
+    return date('Y-m-d', $ts);
+}
+
+function parse_time_range($value): array {
+    if ($value === '' || $value === null) {
+        return ['08:00:00', '12:00:00'];
+    }
+
+    if (is_numeric($value)) {
+        $start = excel_time_to_hms((float)$value);
+        $end = add_hours($start, 4);
+        return [$start, $end];
+    }
+
+    $normalized = str_replace(['–', '—', ' to '], '-', (string)$value);
+    $parts = array_map('trim', explode('-', $normalized));
+    if (count($parts) >= 2) {
+        $start = parse_single_time($parts[0]) ?? '08:00:00';
+        $end = parse_single_time($parts[1]);
+        if ($end === null) {
+            $end = add_hours($start, 4);
+        }
+        return [$start, ensure_after($start, $end)];
+    }
+
+    $start = parse_single_time($normalized) ?? '08:00:00';
+    $end = add_hours($start, 4);
+    return [$start, $end];
+}
+
+function parse_single_time($value): ?string {
+    if ($value === '' || $value === null) {
+        return null;
+    }
+    if (is_numeric($value)) {
+        return excel_time_to_hms((float)$value);
+    }
+    $ts = strtotime((string)$value);
+    if ($ts === false) {
+        return null;
+    }
+    return date('H:i:00', $ts);
+}
+
+function excel_time_to_hms(float $value): string {
+    $seconds = (int)round($value * 24 * 60 * 60);
+    $hours = floor($seconds / 3600) % 24;
+    $minutes = floor(($seconds % 3600) / 60);
+    return sprintf('%02d:%02d:00', $hours, $minutes);
+}
+
+function add_hours(string $time, int $hours): string {
+    $dt = DateTime::createFromFormat('H:i:s', $time, new DateTimeZone('UTC'));
+    if (!$dt) {
+        return $time;
+    }
+    $dt->modify('+' . $hours . ' hours');
+    return $dt->format('H:i:00');
+}
+
+function ensure_after(string $start, string $end): string {
+    if ($end > $start) {
+        return $end;
+    }
+    return add_hours($start, 4);
+}
+
+function normalize_status(string $label): string {
+    $slug = strtolower(trim(str_replace([' ', '-'], '_', $label)));
+    $valid = ['placeholder','needs_paperwork','scheduled','dispatched','canceled','completed','paid'];
+    if ($slug && in_array($slug, $valid, true)) {
+        return $slug;
+    }
+    if (preg_match('/assign/i', $label)) return 'scheduled';
+    return 'scheduled';
+}
+
+function parse_weight(string $raw): ?float {
+    if ($raw === '') {
+        return null;
+    }
+    $clean = str_replace([',', 'lbs', 'lb'], '', strtolower($raw));
+    $clean = trim($clean);
+    if ($clean === '') {
+        return null;
+    }
+    if (!is_numeric($clean)) {
+        $clean = preg_replace('/[^0-9.\-]/', '', $clean);
+    }
+    return $clean === '' ? null : (float)$clean;
+}
+
+function resolve_contractor(mysqli $db, string $name): ?int {
+    if ($name === '') {
+        return null;
+    }
+    $nameEsc = $db->real_escape_string($name);
+    $sql = "SELECT id FROM contractors WHERE LOWER(name) = LOWER('" . $nameEsc . "') LIMIT 1";
+    if (!$res = $db->query($sql)) {
+        return null;
+    }
+    $row = $res->fetch_assoc();
+    $res->free();
+    return $row ? (int)$row['id'] : null;
+}
+
+function normalize_contractor_name(string $raw): string {
+    if ($raw === '') return '';
+    $trimmed = preg_replace('/[\d#\/].*/', '', $raw);
+    $trimmed = trim($trimmed);
+    $parts = preg_split('/\s+/', $trimmed);
+    if (!$parts) {
+        return '';
+    }
+    if (count($parts) >= 2) {
+        return $parts[0] . ' ' . $parts[1];
+    }
+    return $parts[0];
+}
+
+function lookup_default_contractor(mysqli $db): ?int {
+    $res = $db->query("SELECT id FROM contractors WHERE LOWER(name) = 'will advise' LIMIT 1");
+    if (!$res) {
+        return null;
+    }
+    $row = $res->fetch_assoc();
+    $res->free();
+    return $row ? (int)$row['id'] : null;
+}
