@@ -53,13 +53,16 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
         <div class="qa-row status-row">
           <label>Status</label>
           <select name="job.status">
-            <option value="placeholder">Placeholder</option>␊
-            <option value="needs_paperwork" selected>Scheduled - Needs Paperwork</option>
-            <option value="scheduled">Scheduled</option>
+            <option value="placeholder">Placeholder</option>
+            <option value="preplanned">Preplanned</option>
+            <option value="needs_paperwork">Scheduled - Needs Paperwork</option>
+            <option value="scheduled" selected>Scheduled</option>
+            <option value="assigned">Assigned</option>
             <option value="dispatched">Dispatched</option>
             <option value="canceled">Canceled</option>
             <option value="completed">Completed</option>
             <option value="paid">Paid</option>
+            <option value="duplicate">Duplicate (Needs Review)</option>
           </select>
         </div>
 
@@ -300,7 +303,7 @@ export function openQuickAddDialog({startTime, endTime, groupIndex}){
       job_number: get('job.job_number').trim() || null,
       salesman: get('job.salesman').trim() || null,
       service_type: get('job.service_type').trim() || null,
-      status: get('job.status') || 'needs_paperwork'
+      status: get('job.status') || 'scheduled'
     };
 
     const days=[], filesMap=[];
