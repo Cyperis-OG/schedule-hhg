@@ -6,7 +6,19 @@
   function openDialog(){
     const form = document.createElement('form');
     form.id = 'importForm';
-    form.innerHTML = '<input type="file" name="xlsx" accept=".xlsx" required />';
+
+    const note = document.createElement('p');
+    note.textContent = 'Upload an .xlsx spreadsheet that matches the HHG import layout.';
+    note.style.marginBottom = '12px';
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.name = 'xlsx';
+    input.accept = '.xlsx';
+    input.required = true;
+
+    form.appendChild(note);
+    form.appendChild(input);
 
     dlg = new ej.popups.Dialog({
       header: 'Import Schedule',
@@ -30,12 +42,19 @@
   }
 
   async function submitImport(){
-    const file = document.querySelector('#importForm input[type="file"]').files[0];
-    if (!file) { alert('Please select an XLSX file.'); return; }
+    const fileInput = document.querySelector('#importForm input[type="file"]');
+    const file = fileInput?.files?.[0];
+    if (!file) { alert('Please select an .xlsx file.'); return; }
+
+    if (!/\.xlsx$/i.test(file.name)) {
+      alert('The importer only supports .xlsx spreadsheets.');
+      fileInput.value = '';
+      return;
+    }
     const fd = new FormData();
     fd.append('xlsx', file, file.name);
     try {
-      const res = await fetch(API_URL, { method: 'POST', body: fd });
+      const res = await fetch(API_URL, { method: 'POST', body: fd, credentials: 'same-origin' });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || 'Import failed');
       window.location.reload();
