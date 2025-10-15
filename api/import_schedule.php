@@ -131,7 +131,13 @@ try {
         $weight = parse_weight($weightRaw);
         $equipment = $equipmentRaw !== '' ? $equipmentRaw : null;
         $dayNotes = $dayNotesRaw !== '' ? $dayNotesRaw : null;
-        $location = $locationRaw !== '' ? $locationRaw : null;
+        $location = null;
+        if ($locationRaw !== '') {
+            $location = extract_city_state($locationRaw);
+            if ($location === null) {
+                $location = substr($locationRaw, 0, 191);
+            }
+        }
 
         $tractors = 0;
         $bobtails = 0;
@@ -499,4 +505,30 @@ function lookup_default_contractor(mysqli $db): ?int {
     $row = $res->fetch_assoc();
     $res->free();
     return $row ? (int)$row['id'] : null;
+}
+
+function extract_city_state(string $raw): ?string {
+    $normalized = str_replace(["\r\n", "\r"], "\n", $raw);
+    $lines = explode("\n", $normalized);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '') {
+            continue;
+        }
+        if (preg_match('/([A-Za-z][A-Za-z .\'\-]*)\s*,\s*([A-Z]{2})(?:\s+\d{5}(?:-\d{4})?)?$/', $line, $m)) {
+            $city = preg_replace('/\s+/', ' ', trim($m[1]));
+            $state = strtoupper($m[2]);
+            if ($city !== '' && $state !== '') {
+                return $city . ', ' . $state;
+            }
+        }
+    }
+    if (preg_match('/([A-Za-z][A-Za-z .\'\-]*)\s*,\s*([A-Z]{2})(?:\s+\d{5}(?:-\d{4})?)?/', $raw, $m)) {
+        $city = preg_replace('/\s+/', ' ', trim($m[1]));
+        $state = strtoupper($m[2]);
+        if ($city !== '' && $state !== '') {
+            return $city . ', ' . $state;
+        }
+    }
+    return null;
 }
