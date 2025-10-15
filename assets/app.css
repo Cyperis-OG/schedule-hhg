@@ -84,10 +84,14 @@ html, body { height:100%; margin:0; }
 .e-appointment[class*="status-"] { border:1px solid transparent; }
 .e-appointment.status-placeholder,
 .e-appointment.status-placeholder .appt { background:#b0b0b0 !important; color:#fff !important; }
+.e-appointment.status-preplanned,
+.e-appointment.status-preplanned .appt { background:#6b7280 !important; color:#fff !important; }
 .e-appointment.status-needs_paperwork,
 .e-appointment.status-needs_paperwork .appt { background:#4b9dd3 !important; color:#fff !important; }
 .e-appointment.status-scheduled,
 .e-appointment.status-scheduled .appt { background:#003366 !important; color:#fff !important; }
+.e-appointment.status-assigned,
+.e-appointment.status-assigned .appt { background:#2563eb !important; color:#fff !important; }
 .e-appointment.status-dispatched,
 .e-appointment.status-dispatched .appt { background:#e68a00 !important; color:#fff !important; }
 .e-appointment.status-canceled,
@@ -97,6 +101,9 @@ html, body { height:100%; margin:0; }
 .e-appointment.status-paid,
 .e-appointment.status-paid .appt { background:#10b981 !important; color:#fff !important; }
 .e-appointment.status-paid { border:2px solid #d4af37 !important; }
+.e-appointment.status-duplicate,
+.e-appointment.status-duplicate .appt { background:#dc2626 !important; color:#fff !important; }
+.e-appointment.status-duplicate { border:2px solid #7f1d1d !important; }
 
 .qi-warning {
   background:#fef3c7;
