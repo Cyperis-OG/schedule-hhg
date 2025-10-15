@@ -118,13 +118,18 @@ $mysqli->begin_transaction();
 
 try {
     // Update master job
-    $sqlJob = "UPDATE jobs SET title = ?, job_number = ?, salesman = ?, status = ? WHERE uid = ?";
+    $sqlJob = "UPDATE jobs SET title = ?, job_number = ?, salesman = ?, service_type = ?, status = ? WHERE uid = ?";
     $stJob = must_prepare($mysqli, $sqlJob);
     $title  = $job['title']      ?? $job['customer_name'] ?? '';
     $jobnum = $job['job_number'] ?? null;
     $sales  = $job['salesman']   ?? null;
+    $serviceType = $job['service_type'] ?? null;
+    if ($serviceType !== null) {
+        $serviceType = trim($serviceType);
+        if ($serviceType === '') $serviceType = null;
+    }
     $status = $job['status']     ?? 'scheduled';
-    if (!$stJob->bind_param('sssss', $title, $jobnum, $sales, $status, $job_uid)) {
+    if (!$stJob->bind_param('ssssss', $title, $jobnum, $sales, $serviceType, $status, $job_uid)) {
         throw new Exception('bind_param failed (jobs): ' . $stJob->error);
     }
     if (!$stJob->execute()) {
@@ -137,16 +142,18 @@ try {
                 uid, job_uid, work_date, start_time, end_time,
                 contractor_id, location,
                 tractors, bobtails, movers, drivers, installers, pctechs, supervisors, project_managers, crew_transport, electricians,
+                equipment, weight,
                 day_notes, status, created_at
-              ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
-    $typesIns = 'sssssis' . str_repeat('i', 10) . 'ss';
+              ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW())";
+    $typesIns = 'sssssis' . str_repeat('i', 10) . 'sdss';
 
     $sqlUpd = "UPDATE job_days SET
                 work_date=?, start_time=?, end_time=?, contractor_id=?, location=?,
                 tractors=?, bobtails=?, movers=?, drivers=?, installers=?, pctechs=?, supervisors=?, project_managers=?, crew_transport=?, electricians=?,
+                equipment=?, weight=?,
                 day_notes=?, status=?
               WHERE uid=?";
-    $typesUpd = 'sssis' . str_repeat('i', 10) . 'sss';
+    $typesUpd = 'sssis' . str_repeat('i', 10) . 'sdsss';
     $stIns = must_prepare($mysqli, $sqlIns);
     $stUpd = must_prepare($mysqli, $sqlUpd);
 
@@ -173,6 +180,10 @@ try {
         $crew        = (int)($d['crew_transport'] ?? 0);
         $elec        = (int)($d['electricians'] ?? 0);
 
+        $equipmentRaw = trim((string)($d['equipment'] ?? ''));
+        $equipment = $equipmentRaw === '' ? null : $equipmentRaw;
+        $weightVal = trim((string)($d['weight'] ?? ''));
+        $weight    = $weightVal === '' ? null : (float)$weightVal;
         $day_notes = $d['day_notes'] ?? null;
         $dstatus   = $d['status'] ?? $status;
 
@@ -180,6 +191,7 @@ try {
             $params = [
                 $work_date, $start_time, $end_time, $contractor_id, $location,
                 $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
+                $equipment, $weight,
                 $day_notes, $dstatus, $day_uid
             ];
             if (!$stUpd->bind_param($typesUpd, ...$params)) {
@@ -194,6 +206,7 @@ try {
                 $day_uid, $job_uid, $work_date, $start_time, $end_time,
                 $contractor_id, $location,
                 $tractors, $bobtails, $movers, $drivers, $installers, $pctechs, $supervisors, $pms, $crew, $elec,
+                $equipment, $weight,
                 $day_notes, $dstatus
             ];
             if (!$stIns->bind_param($typesIns, ...$params)) {
