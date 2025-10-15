@@ -203,12 +203,15 @@
             <select name="job.status">
               ${[
                 ['placeholder','Placeholder'],
+                ['preplanned','Preplanned'],
                 ['needs_paperwork','Scheduled - Needs Paperwork'],
                 ['scheduled','Scheduled'],
+                ['assigned','Assigned'],
                 ['dispatched','Dispatched'],
                 ['canceled','Canceled'],
                 ['completed','Completed'],
-                ['paid','Paid']
+                ['paid','Paid'],
+                ['duplicate','Duplicate (Needs Review)']
               ].map(([val,label]) => `<option value="${val}" ${String(job.status || job.Status || "scheduled")===val?"selected":""}>${label}</option>`).join("")}
             </select>
           </div>
