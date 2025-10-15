@@ -59,6 +59,7 @@ $mysqli->begin_transaction();
 
 try {
     $imported = 0;
+    $duplicates = 0;
 
     $sqlJob = "INSERT INTO jobs (uid, title, job_number, salesman, service_type, status, notes, created_at)
                VALUES (?,?,?,?,?,?,?,NOW())";
@@ -72,6 +73,17 @@ try {
 
     $stJob = must_prepare($mysqli, $sqlJob);
     $stDay = must_prepare($mysqli, $sqlDay);
+
+    $stFindDup = must_prepare($mysqli, "SELECT jd.job_uid AS job_uid"
+        . " FROM job_days jd"
+        . " INNER JOIN jobs j ON j.uid = jd.job_uid"
+        . " WHERE j.job_number = ? AND jd.work_date = ?"
+        . " LIMIT 1");
+    $stMarkDayDup = must_prepare($mysqli, "UPDATE job_days jd"
+        . " INNER JOIN jobs j ON j.uid = jd.job_uid"
+        . " SET jd.status = 'duplicate'"
+        . " WHERE j.job_number = ? AND jd.work_date = ?");
+    $stMarkJobDup = must_prepare($mysqli, "UPDATE jobs SET status = 'duplicate' WHERE job_number = ? AND status <> 'duplicate'");
 
     $defaultCtr = lookup_default_contractor($mysqli);
 
@@ -111,14 +123,51 @@ try {
             $contractorId = $defaultCtr;
         }
 
-        $jobUid = uid26();
-        $dayUid = uid26();
-
         $jobNumber = $jobNumberRaw !== '' ? $jobNumberRaw : null;
         $requester = $requesterRaw !== '' ? $requesterRaw : null;
         $serviceType = $serviceTypeRaw !== '' ? $serviceTypeRaw : null;
 
         $status = normalize_status($statusRaw);
+
+        if ($jobNumber !== null) {
+            if (!$stFindDup->bind_param('ss', $jobNumber, $workDate)) {
+                throw new Exception('duplicate lookup bind failed: ' . $stFindDup->error);
+            }
+            if (!$stFindDup->execute()) {
+                throw new Exception('duplicate lookup failed: ' . $stFindDup->error);
+            }
+            $dupRes = $stFindDup->get_result();
+            $existing = $dupRes ? $dupRes->fetch_assoc() : null;
+            if ($dupRes) {
+                $dupRes->free();
+            }
+            $stFindDup->free_result();
+
+            if ($existing) {
+                if (!$stMarkDayDup->bind_param('ss', $jobNumber, $workDate)) {
+                    throw new Exception('duplicate day bind failed: ' . $stMarkDayDup->error);
+                }
+                if (!$stMarkDayDup->execute()) {
+                    throw new Exception('duplicate day update failed: ' . $stMarkDayDup->error);
+                }
+                if (!$stMarkJobDup->bind_param('s', $jobNumber)) {
+                    throw new Exception('duplicate job bind failed: ' . $stMarkJobDup->error);
+                }
+                if (!$stMarkJobDup->execute()) {
+                    throw new Exception('duplicate job update failed: ' . $stMarkJobDup->error);
+                }
+                $duplicates++;
+                $stMarkDayDup->reset();
+                $stMarkJobDup->reset();
+                $stFindDup->reset();
+                continue;
+            }
+
+            $stFindDup->reset();
+        }
+
+        $jobUid = uid26();
+        $dayUid = uid26();
 
         $notes = null;
         if (!$stJob->bind_param('sssssss', $jobUid, $customer, $jobNumber, $requester, $serviceType, $status, $notes)) {
@@ -198,8 +247,11 @@ try {
 
     $stJob->close();
     $stDay->close();
+    $stFindDup->close();
+    $stMarkDayDup->close();
+    $stMarkJobDup->close();
     $mysqli->commit();
-    echo json_encode(['ok' => true, 'imported' => $imported]);
+    echo json_encode(['ok' => true, 'imported' => $imported, 'duplicates' => $duplicates]);
 } catch (Throwable $e) {
     $mysqli->rollback();
     http_response_code(500);
@@ -445,12 +497,54 @@ function ensure_after(string $start, string $end): string {
 }
 
 function normalize_status(string $label): string {
-    $slug = strtolower(trim(str_replace([' ', '-'], '_', $label)));
-    $valid = ['placeholder','needs_paperwork','scheduled','dispatched','canceled','completed','paid'];
-    if ($slug && in_array($slug, $valid, true)) {
-        return $slug;
+    $raw = trim($label);
+    if ($raw === '') {
+        return 'scheduled';
     }
-    if (preg_match('/assign/i', $label)) return 'scheduled';
+
+    $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/', '_', $raw), '_'));
+    $map = [
+        'placeholder'                 => 'placeholder',
+        'needs_paperwork'             => 'needs_paperwork',
+        'scheduled_needs_paperwork'   => 'needs_paperwork',
+        'scheduled'                   => 'scheduled',
+        'assigned'                    => 'assigned',
+        'preplanned'                  => 'preplanned',
+        'pre_planned'                 => 'preplanned',
+        'pre_plan'                    => 'preplanned',
+        'dispatched'                  => 'dispatched',
+        'canceled'                    => 'canceled',
+        'cancelled'                   => 'canceled',
+        'completed'                   => 'completed',
+        'paid'                        => 'paid',
+        'duplicate'                   => 'duplicate'
+    ];
+    if ($slug !== '' && isset($map[$slug])) {
+        return $map[$slug];
+    }
+
+    if (preg_match('/pre\s*plan/i', $raw)) {
+        return 'preplanned';
+    }
+    if (preg_match('/assign/i', $raw)) {
+        return 'assigned';
+    }
+    if (preg_match('/dispatch/i', $raw)) {
+        return 'dispatched';
+    }
+    if (preg_match('/paper/i', $raw)) {
+        return 'needs_paperwork';
+    }
+    if (preg_match('/cancel/i', $raw)) {
+        return 'canceled';
+    }
+    if (preg_match('/complete/i', $raw)) {
+        return 'completed';
+    }
+    if (preg_match('/paid/i', $raw)) {
+        return 'paid';
+    }
+
     return 'scheduled';
 }
 
