@@ -43,12 +43,15 @@
           "type": "select",
           "options": [
             ["placeholder", "Placeholder"],
+            ["preplanned", "Preplanned"],
             ["needs_paperwork", "Scheduled - Needs Paperwork"],
             ["scheduled", "Scheduled"],
+            ["assigned", "Assigned"],
             ["dispatched", "Dispatched"],
             ["canceled", "Canceled"],
             ["completed", "Completed"],
-            ["paid", "Paid"]
+            ["paid", "Paid"],
+            ["duplicate", "Duplicate (Needs Review)"]
           ],
           "default": "scheduled",
           "quick": true
