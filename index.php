@@ -98,9 +98,10 @@ if ($dayFieldsJson === false) $dayFieldsJson = '[]';
   <?php endif; ?>
   <script src="./assets/js/quickinfo.js"></script>      <!-- centered quick info dialog -->
   <?php if ($isAdmin): ?>
+  <?php $importJsVersion = @filemtime(__DIR__ . '/assets/js/import.js') ?: time(); ?>
   <script src="./assets/js/quickadd.js"></script>       <!-- add job (multi-day) -->
   <script src="./assets/js/editjob.js"></script>        <!-- edit job (multi-day) -->
-  <script src="./assets/js/import.js"></script>         <!-- import jobs from CSV -->
+  <script src="./assets/js/import.js?v=<?= $importJsVersion ?>"></script>         <!-- import jobs from XLSX -->
   <?php endif; ?>
 
 </body>
