@@ -52,12 +52,15 @@
 
   const STATUS_LABELS = {
     placeholder: 'Placeholder',
+    preplanned: 'Preplanned',
     needs_paperwork: 'Scheduled - Needs Paperwork',
     scheduled: 'Scheduled',
+    assigned: 'Assigned',
     dispatched: 'Dispatched',
     canceled: 'Canceled',
     completed: 'Completed',
-    paid: 'Paid'
+    paid: 'Paid',
+    duplicate: 'Duplicate (Needs Review)'
   };
 
   const pad2 = (n) => (n < 10 ? "0" : "") + n;
@@ -151,7 +154,7 @@
         <button class="qi-btn danger" data-act="delete">Delete</button>
     ` : '';
 
-    const prelim = ['placeholder','needs_paperwork'];
+    const prelim = ['placeholder','needs_paperwork','preplanned'];
     const warn = (!IS_ADMIN && start > new Date() && prelim.includes(statusSlug))
       ? '<div class="qi-warning">This job is not confirmed.</div>' : '';
 
