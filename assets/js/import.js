@@ -6,7 +6,7 @@
   function openDialog(){
     const form = document.createElement('form');
     form.id = 'importForm';
-    form.innerHTML = '<input type="file" name="csv" accept=".csv" required />';
+    form.innerHTML = '<input type="file" name="xlsx" accept=".xlsx" required />';
 
     dlg = new ej.popups.Dialog({
       header: 'Import Schedule',
@@ -31,9 +31,9 @@
 
   async function submitImport(){
     const file = document.querySelector('#importForm input[type="file"]').files[0];
-    if (!file) { alert('Please select a CSV file.'); return; }
+    if (!file) { alert('Please select an XLSX file.'); return; }
     const fd = new FormData();
-    fd.append('csv', file, file.name);
+    fd.append('xlsx', file, file.name);
     try {
       const res = await fetch(API_URL, { method: 'POST', body: fd });
       const data = await res.json();
