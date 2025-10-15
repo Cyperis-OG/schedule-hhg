@@ -43,7 +43,7 @@ try {
   // master job (return both numeric id and uid if present)
   $stmt = must_prepare(
     $mysqli,
-    'SELECT id AS JobId, uid AS JobUID, title AS customer_name, job_number, salesman, status FROM jobs WHERE uid = ?'
+    'SELECT id AS JobId, uid AS JobUID, title AS customer_name, job_number, salesman, service_type, status FROM jobs WHERE uid = ?'
   );
   $stmt->bind_param('s', $jobUid);
   $stmt->execute();
@@ -68,6 +68,7 @@ try {
       jd.tractors, jd.bobtails, jd.movers, jd.drivers,
       jd.installers, jd.pctechs, jd.supervisors,
       jd.project_managers, jd.crew_transport, jd.electricians,
+      jd.equipment, jd.weight,
       jd.day_notes     AS day_notes,
       jd.status        AS status,
       j.title          AS customer,
