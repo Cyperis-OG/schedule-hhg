@@ -23,7 +23,7 @@ if (!$isAdmin && isset($template['actions']) && is_array($template['actions'])) 
 }
 
 // 2) Fetch job_day + job + contractor rows
-$sql = "SELECT jd.*, j.title, j.job_number, j.salesman, j.status AS job_status, j.notes, j.meta AS job_meta,
+$sql = "SELECT jd.*, j.title, j.job_number, j.salesman, j.service_type, j.status AS job_status, j.notes, j.meta AS job_meta,
                c.name AS contractor_name
         FROM job_days jd
         JOIN jobs j ON j.uid = jd.job_uid
@@ -70,12 +70,12 @@ function val($path, $row) {
                 if ($leaf && array_key_exists($leaf, $meta)) return htmlspecialchars((string)$meta[$leaf]);
             } else {
                 $map = [
-                  'title'=>'title','job_number'=>'job_number','salesman'=>'salesman','status'=>'job_status','notes'=>'notes'
+                  'title'=>'title','job_number'=>'job_number','salesman'=>'salesman','service_type'=>'service_type','status'=>'job_status','notes'=>'notes'
                 ];
                 if (isset($map[$sub]) && isset($row[$map[$sub]])) return nl2br(htmlspecialchars((string)$row[$map[$sub]]));
             }
         } elseif ($root === 'job_days') {
-            $subMap = ['start_time','end_time','location','status','tractors','bobtails','movers','drivers','installers','supervisors','pctechs','project_managers','crew_transport','electricians','day_notes'];
+            $subMap = ['start_time','end_time','location','status','tractors','bobtails','movers','drivers','installers','supervisors','pctechs','project_managers','crew_transport','electricians','equipment','weight','day_notes'];
             if (in_array($sub, $subMap, true) && isset($row[$sub])) return htmlspecialchars((string)$row[$sub]);
         } elseif ($root === 'contractors') {
             if ($sub === 'name') return htmlspecialchars((string)($row['contractor_name'] ?? ''));
